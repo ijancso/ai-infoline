@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.twilio_webhook import router as twilio_router
+
 app = FastAPI(
     title="AI Infoline API",
     description="AI-based phone infoline SaaS backend",
@@ -14,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(twilio_router)
 
 
 @app.get("/health")
