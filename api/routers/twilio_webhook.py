@@ -79,6 +79,10 @@ async def status_callback(
     """
     await _verify_signature(request, x_twilio_signature)
 
+    if CallStatus in ("completed", "failed", "busy", "no-answer") and CallSid:
+        from services.claude_service import clear_session
+        clear_session(CallSid)
+
     # TODO: mentés adatbázisba
     return Response(status_code=204)
 

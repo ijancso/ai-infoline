@@ -90,5 +90,5 @@ async def build_response_twiml(
 
 
 async def _get_ai_reply(user_input: str, call_sid: Optional[str]) -> str:
-    # TODO: Anthropic Claude hívás + session kezelés call_sid alapján
-    return f"Megértettem a kérdését: {user_input}. Hamarosan válaszolunk."
+    from services.claude_service import get_ai_reply
+    return await get_ai_reply(user_input, call_sid)
