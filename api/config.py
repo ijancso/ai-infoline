@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     do_spaces_key: str
     do_spaces_secret: str
     do_spaces_endpoint: str
+    do_spaces_bucket: str
 
     class Config:
         env_file = ".env"

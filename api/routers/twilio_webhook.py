@@ -109,15 +109,23 @@ async def recording_callback(
     RecordingStatus: Annotated[Optional[str], Form()] = None,
     RecordingDuration: Annotated[Optional[str], Form()] = None,
 ):
-    """
-    Twilio értesít, amikor a felvétel elkészült.
-    Letöltjük és DO Spaces-be töltjük fel.
-    """
     await _verify_signature(request, x_twilio_signature)
 
-    if RecordingStatus == "completed" and RecordingUrl:
-        # TODO: letöltés + Spaces feltöltés
-        pass
+    if RecordingStatus == "completed" and RecordingUrl and CallSid and RecordingSid:
+        from config import settings
+        from services.spaces_service import upload_recording
+
+        twilio_auth = (settings.twilio_account_sid, settings.twilio_auth_token)
+        try:
+            key = await upload_recording(
+                recording_url=RecordingUrl,
+                call_sid=CallSid,
+                recording_sid=RecordingSid,
+                twilio_auth=twilio_auth,
+            )
+            logger.info("Recording saved | call_sid=%s | key=%s", CallSid, key)
+        except Exception as exc:
+            logger.error("Recording upload failed | call_sid=%s | %s", CallSid, exc)
 
     return Response(status_code=204)
 
