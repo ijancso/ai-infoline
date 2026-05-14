@@ -4,7 +4,6 @@ from typing import Annotated, Optional
 
 from services.twilio_service import (
     build_greeting_twiml,
-    build_gather_twiml,
     build_response_twiml,
     build_no_input_twiml,
     verify_twilio_signature,

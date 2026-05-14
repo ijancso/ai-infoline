@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings
 
 
@@ -7,8 +9,8 @@ class Settings(BaseSettings):
     deepgram_api_key: str
     twilio_account_sid: str
     twilio_auth_token: str
-    stripe_secret_key: str
-    stripe_webhook_secret: str
+    stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
     do_spaces_key: str
     do_spaces_secret: str
     do_spaces_endpoint: str
