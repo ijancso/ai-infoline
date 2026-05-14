@@ -1,13 +1,20 @@
-from fastapi import APIRouter, Form, Header, HTTPException, Request
+import logging
+
+from fastapi import APIRouter, Depends, Form, Header, HTTPException, Request
 from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Optional
 
+from db import get_db
+from services.call_service import upsert_call
 from services.twilio_service import (
     build_greeting_twiml,
     build_response_twiml,
     build_no_input_twiml,
     verify_twilio_signature,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/twilio", tags=["twilio"])
 
@@ -65,6 +72,7 @@ async def gather_webhook(
 @router.post("/status", summary="Call status callback")
 async def status_callback(
     request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
     x_twilio_signature: Annotated[Optional[str], Header()] = None,
     CallSid: Annotated[Optional[str], Form()] = None,
     CallStatus: Annotated[Optional[str], Form()] = None,
@@ -72,17 +80,22 @@ async def status_callback(
     From: Annotated[Optional[str], Form()] = None,
     To: Annotated[Optional[str], Form()] = None,
 ):
-    """
-    Twilio értesít a hívás státuszáról (completed, failed, busy, no-answer).
-    Logoljuk és adatbázisba mentjük a hívás adatait.
-    """
     await _verify_signature(request, x_twilio_signature)
 
-    if CallStatus in ("completed", "failed", "busy", "no-answer") and CallSid:
-        from services.claude_service import clear_session
-        clear_session(CallSid)
+    if CallSid:
+        await upsert_call(
+            db,
+            call_sid=CallSid,
+            from_number=From,
+            to_number=To,
+            status=CallStatus,
+            duration_seconds=int(CallDuration) if CallDuration else None,
+        )
+        if CallStatus in ("completed", "failed", "busy", "no-answer"):
+            from services.claude_service import clear_session
+            clear_session(CallSid)
+        logger.info("Call upserted | call_sid=%s | status=%s", CallSid, CallStatus)
 
-    # TODO: mentés adatbázisba
     return Response(status_code=204)
 
 
