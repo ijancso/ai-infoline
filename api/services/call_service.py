@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -14,6 +15,7 @@ async def upsert_call(
     to_number: Optional[str] = None,
     status: Optional[str] = None,
     duration_seconds: Optional[int] = None,
+    tenant_id: Optional[uuid.UUID] = None,
 ) -> Call:
     result = await db.execute(select(Call).where(Call.call_sid == call_sid))
     call = result.scalar_one_or_none()
@@ -30,6 +32,8 @@ async def upsert_call(
         call.status = status
     if duration_seconds is not None:
         call.duration_seconds = duration_seconds
+    if tenant_id is not None:
+        call.tenant_id = tenant_id
 
     call.updated_at = datetime.now(timezone.utc)
     await db.commit()

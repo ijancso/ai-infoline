@@ -38,12 +38,18 @@ def clear_session(call_sid: str) -> None:
     _sessions.pop(call_sid, None)
 
 
-async def get_ai_reply(user_input: str, call_sid: Optional[str]) -> str:
+async def get_ai_reply(
+    user_input: str,
+    call_sid: Optional[str],
+    system_prompt: Optional[str] = None,
+) -> str:
     client = _get_client()
     session_key = call_sid or "__anonymous__"
     messages = get_session_messages(session_key)
 
     messages.append({"role": "user", "content": user_input})
+
+    effective_prompt = system_prompt or SYSTEM_PROMPT
 
     try:
         response = await client.messages.create(
@@ -52,8 +58,7 @@ async def get_ai_reply(user_input: str, call_sid: Optional[str]) -> str:
             system=[
                 {
                     "type": "text",
-                    "text": SYSTEM_PROMPT,
-                    # Prompt caching: a system prompt stabil, így cachelve lesz
+                    "text": effective_prompt,
                     "cache_control": {"type": "ephemeral"},
                 }
             ],

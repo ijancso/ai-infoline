@@ -7,6 +7,7 @@ from typing import Annotated, Optional
 
 from db import get_db
 from services.call_service import upsert_call
+from services.tenant_service import get_tenant_by_phone
 from services.twilio_service import (
     build_greeting_twiml,
     build_response_twiml,
@@ -22,49 +23,57 @@ router = APIRouter(prefix="/twilio", tags=["twilio"])
 @router.post("/voice", summary="Incoming call webhook")
 async def voice_webhook(
     request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
     x_twilio_signature: Annotated[Optional[str], Header()] = None,
     CallSid: Annotated[Optional[str], Form()] = None,
     From: Annotated[Optional[str], Form()] = None,
     To: Annotated[Optional[str], Form()] = None,
     CallStatus: Annotated[Optional[str], Form()] = None,
 ):
-    """
-    Twilio hív minket, amikor bejövő hívás érkezik.
-    Visszaad egy TwiML választ, amely üdvözli a hívót és elindítja a gather-t.
-    """
     await _verify_signature(request, x_twilio_signature)
 
-    twiml = build_greeting_twiml(
-        gather_action="/twilio/gather",
-        caller=From,
-    )
+    tenant = await get_tenant_by_phone(db, To) if To else None
+    if tenant is None:
+        logger.warning("Ismeretlen hívott szám | To=%s", To)
+
+    if CallSid:
+        await upsert_call(
+            db,
+            call_sid=CallSid,
+            from_number=From,
+            to_number=To,
+            tenant_id=tenant.id if tenant else None,
+        )
+
+    twiml = build_greeting_twiml(gather_action="/twilio/gather", caller=From)
     return Response(content=twiml, media_type="application/xml")
 
 
 @router.post("/gather", summary="Speech/DTMF input webhook")
 async def gather_webhook(
     request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
     x_twilio_signature: Annotated[Optional[str], Header()] = None,
     CallSid: Annotated[Optional[str], Form()] = None,
+    To: Annotated[Optional[str], Form()] = None,
     SpeechResult: Annotated[Optional[str], Form()] = None,
     Confidence: Annotated[Optional[str], Form()] = None,
     Digits: Annotated[Optional[str], Form()] = None,
 ):
-    """
-    Twilio küldi a felismert szöveget (SpeechResult) vagy DTMF számjegyet (Digits).
-    Az AI válaszát TwiML-ként adjuk vissza, majd újra gather-t indítunk.
-    """
     await _verify_signature(request, x_twilio_signature)
 
     if not SpeechResult and not Digits:
         twiml = build_no_input_twiml(gather_action="/twilio/gather")
         return Response(content=twiml, media_type="application/xml")
 
+    tenant = await get_tenant_by_phone(db, To) if To else None
+
     user_input = SpeechResult or Digits
     twiml = await build_response_twiml(
         user_input=user_input,
         call_sid=CallSid,
         gather_action="/twilio/gather",
+        system_prompt=tenant.system_prompt if tenant else None,
     )
     return Response(content=twiml, media_type="application/xml")
 
@@ -131,7 +140,6 @@ async def recording_callback(
 
 
 async def _verify_signature(request: Request, signature: Optional[str]) -> None:
-    """Twilio webhook aláírás ellenőrzése (production-ban kötelező)."""
     body = await request.body()
     url = str(request.url)
     if not verify_twilio_signature(signature, url, body):
