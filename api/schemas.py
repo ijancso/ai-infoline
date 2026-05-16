@@ -26,6 +26,7 @@ class TenantOut(BaseModel):
     slug: str
     system_prompt: Optional[str]
     stripe_customer_id: Optional[str]
+    api_key: uuid.UUID
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -61,6 +62,21 @@ class CallOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- CallMessage ---
+
+class CallMessageOut(BaseModel):
+    id: uuid.UUID
+    role: str
+    content: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CallWithMessagesOut(CallOut):
+    messages: list[CallMessageOut] = []
 
 
 # --- Recording ---

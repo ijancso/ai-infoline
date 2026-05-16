@@ -16,6 +16,31 @@ function Badge({ children, color = 'gray' }) {
   )
 }
 
+function ApiKeyBox({ apiKey }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(apiKey)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-blue-600 mb-0.5 uppercase tracking-wide">Tenant API kulcs</p>
+        <p className="text-sm font-mono text-blue-900 truncate">{apiKey}</p>
+      </div>
+      <button
+        onClick={handleCopy}
+        className="shrink-0 text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 transition-colors"
+      >
+        {copied ? 'Másolva!' : 'Másolás'}
+      </button>
+    </div>
+  )
+}
+
 function callStatusColor(status) {
   if (!status) return 'gray'
   if (status === 'completed') return 'green'
@@ -211,6 +236,8 @@ export default function TenantDetail() {
         <h1 className="text-xl font-semibold text-gray-900 mt-1">{tenant.name}</h1>
         <p className="text-sm text-gray-400 font-mono">{tenant.slug}</p>
       </div>
+
+      <ApiKeyBox apiKey={tenant.api_key} />
 
       {tenant.system_prompt && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-6">
