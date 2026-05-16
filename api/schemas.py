@@ -61,3 +61,16 @@ class CallOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# --- Recording ---
+
+class RecordingOut(BaseModel):
+    id: uuid.UUID
+    call_sid: str
+    recording_sid: str
+    spaces_key: str
+    duration_seconds: Optional[int]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

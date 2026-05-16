@@ -57,3 +57,32 @@ class Call(Base):
     )
 
     tenant: Mapped["Tenant | None"] = relationship(back_populates="calls")
+    messages: Mapped[list["CallMessage"]] = relationship(back_populates="call")
+
+
+class CallMessage(Base):
+    __tablename__ = "call_messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    call_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("calls.id"), nullable=False)
+    call_sid: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    role: Mapped[str] = mapped_column(String(16), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    call: Mapped["Call"] = relationship(back_populates="messages")
+
+
+class Recording(Base):
+    __tablename__ = "recordings"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    call_sid: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    recording_sid: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    spaces_key: Mapped[str] = mapped_column(String(256), nullable=False)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )

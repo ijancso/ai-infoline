@@ -72,8 +72,13 @@ async def build_response_twiml(
     call_sid: Optional[str],
     gather_action: str,
     system_prompt: Optional[str] = None,
+    db=None,
+    call_id=None,
 ) -> str:
-    ai_reply = await _get_ai_reply(user_input, call_sid, system_prompt)
+    from services.claude_service import get_ai_reply
+    ai_reply = await get_ai_reply(
+        user_input, call_sid, system_prompt, db=db, call_id=call_id
+    )
 
     response = VoiceResponse()
     gather = Gather(
@@ -88,12 +93,3 @@ async def build_response_twiml(
     response.append(gather)
     response.redirect(gather_action, method="POST")
     return str(response)
-
-
-async def _get_ai_reply(
-    user_input: str,
-    call_sid: Optional[str],
-    system_prompt: Optional[str] = None,
-) -> str:
-    from services.claude_service import get_ai_reply
-    return await get_ai_reply(user_input, call_sid, system_prompt)

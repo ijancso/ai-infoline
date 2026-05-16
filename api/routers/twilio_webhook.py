@@ -2,10 +2,12 @@ import logging
 
 from fastapi import APIRouter, Depends, Form, Header, HTTPException, Request
 from fastapi.responses import Response
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Optional
 
 from db import get_db
+from models import Call, Recording
 from services.call_service import upsert_call
 from services.tenant_service import get_tenant_by_phone
 from services.twilio_service import (
@@ -68,12 +70,21 @@ async def gather_webhook(
 
     tenant = await get_tenant_by_phone(db, To) if To else None
 
+    call_id = None
+    if CallSid:
+        result = await db.execute(select(Call).where(Call.call_sid == CallSid))
+        call = result.scalar_one_or_none()
+        if call:
+            call_id = call.id
+
     user_input = SpeechResult or Digits
     twiml = await build_response_twiml(
         user_input=user_input,
         call_sid=CallSid,
         gather_action="/twilio/gather",
         system_prompt=tenant.system_prompt if tenant else None,
+        db=db,
+        call_id=call_id,
     )
     return Response(content=twiml, media_type="application/xml")
 
@@ -111,6 +122,7 @@ async def status_callback(
 @router.post("/recording", summary="Recording status callback")
 async def recording_callback(
     request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
     x_twilio_signature: Annotated[Optional[str], Header()] = None,
     CallSid: Annotated[Optional[str], Form()] = None,
     RecordingSid: Annotated[Optional[str], Form()] = None,
@@ -132,6 +144,14 @@ async def recording_callback(
                 recording_sid=RecordingSid,
                 twilio_auth=twilio_auth,
             )
+            recording = Recording(
+                call_sid=CallSid,
+                recording_sid=RecordingSid,
+                spaces_key=key,
+                duration_seconds=int(RecordingDuration) if RecordingDuration else None,
+            )
+            db.add(recording)
+            await db.commit()
             logger.info("Recording saved | call_sid=%s | key=%s", CallSid, key)
         except Exception as exc:
             logger.error("Recording upload failed | call_sid=%s | %s", CallSid, exc)

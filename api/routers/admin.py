@@ -7,11 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_db
 from config import settings
-from models import Call, PhoneNumber, Tenant
+from models import Call, PhoneNumber, Recording, Tenant
 from schemas import (
     CallOut,
     PhoneNumberCreate,
     PhoneNumberOut,
+    RecordingOut,
     TenantCreate,
     TenantOut,
     TenantUpdate,
@@ -133,6 +134,21 @@ async def list_calls(
         .order_by(Call.created_at.desc())
         .offset(offset)
         .limit(limit)
+    )
+    return result.scalars().all()
+
+
+# --- Recordings ---
+
+@router.get("/tenants/{tenant_id}/calls/{call_id}/recordings", response_model=list[RecordingOut])
+async def list_recordings(_: Auth, db: DB, tenant_id: uuid.UUID, call_id: uuid.UUID):
+    await _get_tenant_or_404(db, tenant_id)
+    result = await db.execute(select(Call).where(Call.id == call_id, Call.tenant_id == tenant_id))
+    call = result.scalar_one_or_none()
+    if call is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    result = await db.execute(
+        select(Recording).where(Recording.call_sid == call.call_sid).order_by(Recording.created_at)
     )
     return result.scalars().all()
 
