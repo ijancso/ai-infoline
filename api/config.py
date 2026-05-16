@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     do_spaces_secret: str
     do_spaces_endpoint: str
     do_spaces_bucket: str
+    admin_api_key: str
 
     class Config:
         env_file = ".env"
