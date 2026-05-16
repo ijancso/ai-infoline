@@ -13,14 +13,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    def _run_migrations():
-        from alembic.config import Config
-        from alembic import command
-        cfg = Config("alembic.ini")
-        command.upgrade(cfg, "head")
-
+    import subprocess
     logger.info("Running database migrations...")
-    await asyncio.to_thread(_run_migrations)
+    await asyncio.to_thread(
+        lambda: subprocess.run(["alembic", "upgrade", "head"], check=True)
+    )
     logger.info("Migrations complete.")
     yield
 

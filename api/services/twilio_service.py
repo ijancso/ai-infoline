@@ -19,9 +19,10 @@ def verify_twilio_signature(
     url: str,
     body: bytes,
 ) -> bool:
-    # Fejlesztési módban (nincs aláírás) átengedjük
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        return True
     if not signature:
-        return os.getenv("ENVIRONMENT", "development") == "development"
+        return False
     try:
         return _get_validator().validate(url, body.decode(), signature)
     except Exception:
