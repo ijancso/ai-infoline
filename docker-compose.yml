@@ -1,8 +1,6 @@
 services:
   api:
     build: ./api
-    ports:
-      - "8080:8000"
     env_file:
       - .env
     volumes:
@@ -11,6 +9,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
   postgres:
     image: postgres:16-alpine
