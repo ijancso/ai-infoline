@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     database_url: str
     anthropic_api_key: str
-    deepgram_api_key: str
+    deepgram_api_key: Optional[str] = None
     twilio_account_sid: str
     twilio_auth_token: str
     stripe_secret_key: Optional[str] = None
