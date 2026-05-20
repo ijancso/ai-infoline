@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import logging.config
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,6 +10,29 @@ from routers.admin import router as admin_router
 from routers.portal import router as portal_router
 from routers.twilio_webhook import router as twilio_router
 
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)-8s %(name)s | %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "loggers": {
+        "services": {"level": "INFO", "handlers": ["console"], "propagate": False},
+        "routers": {"level": "INFO", "handlers": ["console"], "propagate": False},
+        "__main__": {"level": "INFO", "handlers": ["console"], "propagate": False},
+    },
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
