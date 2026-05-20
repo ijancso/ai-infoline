@@ -29,7 +29,7 @@ def verify_twilio_signature(
         return False
 
 
-TTS_VOICE = None
+TTS_VOICE = "Google.hu-HU-Standard-A"
 TTS_LANGUAGE = "hu-HU"
 
 
@@ -49,6 +49,7 @@ def build_greeting_twiml(gather_action: str, caller: Optional[str] = None) -> st
     gather = _gather(gather_action)
     gather.say(
         "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?",
+        voice=TTS_VOICE,
         language=TTS_LANGUAGE,
     )
     response.append(gather)
@@ -61,6 +62,7 @@ def build_no_input_twiml(gather_action: str) -> str:
     gather = _gather(gather_action)
     gather.say(
         "Sajnálom, nem hallottam. Kérem, mondja el kérdését!",
+        voice=TTS_VOICE,
         language=TTS_LANGUAGE,
     )
     response.append(gather)
