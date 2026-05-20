@@ -29,7 +29,7 @@ def verify_twilio_signature(
         return False
 
 
-TTS_VOICE = "Google.hu-HU-Wavenet-A"
+TTS_VOICE = "Google.hu-HU-Standard-A"
 TTS_LANGUAGE = "hu-HU"
 
 
