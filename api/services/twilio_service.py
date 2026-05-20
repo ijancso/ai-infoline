@@ -29,39 +29,41 @@ def verify_twilio_signature(
         return False
 
 
-def build_greeting_twiml(gather_action: str, caller: Optional[str] = None) -> str:
-    response = VoiceResponse()
-    gather = Gather(
+TTS_VOICE = "Google.hu-HU-Wavenet-A"
+TTS_LANGUAGE = "hu-HU"
+
+
+def _gather(action: str) -> Gather:
+    return Gather(
         input="speech",
-        action=gather_action,
+        action=action,
         method="POST",
-        language="hu-HU",
+        language=TTS_LANGUAGE,
         speech_timeout="auto",
         enhanced=True,
     )
+
+
+def build_greeting_twiml(gather_action: str, caller: Optional[str] = None) -> str:
+    response = VoiceResponse()
+    gather = _gather(gather_action)
     gather.say(
         "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?",
-        language="hu-HU",
+        voice=TTS_VOICE,
+        language=TTS_LANGUAGE,
     )
     response.append(gather)
-    # Ha a hívó nem reagál
     response.redirect(gather_action, method="POST")
     return str(response)
 
 
 def build_no_input_twiml(gather_action: str) -> str:
     response = VoiceResponse()
-    gather = Gather(
-        input="speech",
-        action=gather_action,
-        method="POST",
-        language="hu-HU",
-        speech_timeout="auto",
-        enhanced=True,
-    )
+    gather = _gather(gather_action)
     gather.say(
         "Sajnálom, nem hallottam. Kérem, mondja el kérdését!",
-        language="hu-HU",
+        voice=TTS_VOICE,
+        language=TTS_LANGUAGE,
     )
     response.append(gather)
     response.redirect(gather_action, method="POST")
@@ -82,15 +84,8 @@ async def build_response_twiml(
     )
 
     response = VoiceResponse()
-    gather = Gather(
-        input="speech",
-        action=gather_action,
-        method="POST",
-        language="hu-HU",
-        speech_timeout="auto",
-        enhanced=True,
-    )
-    gather.say(ai_reply, language="hu-HU")
+    gather = _gather(gather_action)
+    gather.say(ai_reply, voice=TTS_VOICE, language=TTS_LANGUAGE)
     response.append(gather)
     response.redirect(gather_action, method="POST")
     return str(response)
