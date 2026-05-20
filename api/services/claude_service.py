@@ -81,8 +81,9 @@ async def get_ai_reply(
     effective_prompt = f"{SYSTEM_PROMPT}\n\n{system_prompt}" if system_prompt else SYSTEM_PROMPT
 
     try:
+        t0 = datetime.now(timezone.utc)
         response = await client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=150,
             system=[
                 {
@@ -93,6 +94,7 @@ async def get_ai_reply(
             ],
             messages=messages,
         )
+        elapsed_ms = int((datetime.now(timezone.utc) - t0).total_seconds() * 1000)
 
         reply = next(
             (block.text for block in response.content if block.type == "text"),
@@ -105,8 +107,9 @@ async def get_ai_reply(
             await _save_turn_to_db(db, call_id, call_sid, user_input, reply)
 
         logger.info(
-            "Claude válasz | call_sid=%s | cache_read=%d | input_tokens=%d | output_tokens=%d",
+            "Claude válasz | call_sid=%s | %dms | cache_read=%d | in=%d | out=%d",
             call_sid,
+            elapsed_ms,
             response.usage.cache_read_input_tokens or 0,
             response.usage.input_tokens,
             response.usage.output_tokens,
