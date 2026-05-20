@@ -17,14 +17,14 @@ def _get_validator() -> RequestValidator:
 def verify_twilio_signature(
     signature: Optional[str],
     url: str,
-    body: bytes,
+    params: dict,
 ) -> bool:
     if os.getenv("ENVIRONMENT", "development") == "development":
         return True
     if not signature:
         return False
     try:
-        return _get_validator().validate(url, body.decode(), signature)
+        return _get_validator().validate(url, params, signature)
     except Exception:
         return False
 

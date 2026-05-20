@@ -32,7 +32,9 @@ async def voice_webhook(
     To: Annotated[Optional[str], Form()] = None,
     CallStatus: Annotated[Optional[str], Form()] = None,
 ):
-    await _verify_signature(request, x_twilio_signature)
+    await _verify_signature(request, x_twilio_signature, {
+        k: v for k, v in {"CallSid": CallSid, "From": From, "To": To, "CallStatus": CallStatus}.items() if v is not None
+    })
 
     tenant = await get_tenant_by_phone(db, To) if To else None
     if tenant is None:
@@ -62,7 +64,9 @@ async def gather_webhook(
     Confidence: Annotated[Optional[str], Form()] = None,
     Digits: Annotated[Optional[str], Form()] = None,
 ):
-    await _verify_signature(request, x_twilio_signature)
+    await _verify_signature(request, x_twilio_signature, {
+        k: v for k, v in {"CallSid": CallSid, "To": To, "SpeechResult": SpeechResult, "Confidence": Confidence, "Digits": Digits}.items() if v is not None
+    })
 
     if not SpeechResult and not Digits:
         twiml = build_no_input_twiml(gather_action="/twilio/gather")
@@ -100,7 +104,9 @@ async def status_callback(
     From: Annotated[Optional[str], Form()] = None,
     To: Annotated[Optional[str], Form()] = None,
 ):
-    await _verify_signature(request, x_twilio_signature)
+    await _verify_signature(request, x_twilio_signature, {
+        k: v for k, v in {"CallSid": CallSid, "CallStatus": CallStatus, "CallDuration": CallDuration, "From": From, "To": To}.items() if v is not None
+    })
 
     if CallSid:
         await upsert_call(
@@ -130,7 +136,9 @@ async def recording_callback(
     RecordingStatus: Annotated[Optional[str], Form()] = None,
     RecordingDuration: Annotated[Optional[str], Form()] = None,
 ):
-    await _verify_signature(request, x_twilio_signature)
+    await _verify_signature(request, x_twilio_signature, {
+        k: v for k, v in {"CallSid": CallSid, "RecordingSid": RecordingSid, "RecordingUrl": RecordingUrl, "RecordingStatus": RecordingStatus, "RecordingDuration": RecordingDuration}.items() if v is not None
+    })
 
     if RecordingStatus == "completed" and RecordingUrl and CallSid and RecordingSid:
         from config import settings
@@ -159,11 +167,12 @@ async def recording_callback(
     return Response(status_code=204)
 
 
-async def _verify_signature(request: Request, signature: Optional[str]) -> None:
+async def _verify_signature(
+    request: Request, signature: Optional[str], params: dict
+) -> None:
     import os
     if os.getenv("ENVIRONMENT", "development") == "development":
         return
-    body = await request.body()
     url = str(request.url)
-    if not verify_twilio_signature(signature, url, body):
+    if not verify_twilio_signature(signature, url, params):
         raise HTTPException(status_code=403, detail="Invalid Twilio signature")

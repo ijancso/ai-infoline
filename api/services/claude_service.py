@@ -78,7 +78,7 @@ async def get_ai_reply(
     messages = _sessions[session_key]
     messages.append({"role": "user", "content": user_input})
 
-    effective_prompt = system_prompt or SYSTEM_PROMPT
+    effective_prompt = f"{SYSTEM_PROMPT}\n\n{system_prompt}" if system_prompt else SYSTEM_PROMPT
 
     try:
         response = await client.messages.create(
