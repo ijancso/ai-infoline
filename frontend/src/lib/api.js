@@ -38,6 +38,7 @@ export const api = {
 
   // Calls
   listCalls: (tenantId) => request(`/tenants/${tenantId}/calls`),
+  getCall: (tenantId, callId) => request(`/tenants/${tenantId}/calls/${callId}`),
 
   // Recordings
   listRecordings: (tenantId, callId) =>

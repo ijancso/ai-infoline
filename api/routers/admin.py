@@ -7,9 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_db
 from config import settings
-from models import Call, PhoneNumber, Recording, Tenant
+from models import Call, CallMessage, PhoneNumber, Recording, Tenant
 from schemas import (
     CallOut,
+    CallWithMessagesOut,
     PhoneNumberCreate,
     PhoneNumberOut,
     RecordingOut,
@@ -136,6 +137,21 @@ async def list_calls(
         .limit(limit)
     )
     return result.scalars().all()
+
+
+@router.get("/tenants/{tenant_id}/calls/{call_id}", response_model=CallWithMessagesOut)
+async def get_call(_: Auth, db: DB, tenant_id: uuid.UUID, call_id: uuid.UUID):
+    await _get_tenant_or_404(db, tenant_id)
+    from sqlalchemy.orm import selectinload
+    result = await db.execute(
+        select(Call)
+        .where(Call.id == call_id, Call.tenant_id == tenant_id)
+        .options(selectinload(Call.messages))
+    )
+    call = result.scalar_one_or_none()
+    if call is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+    return call
 
 
 # --- Recordings ---
