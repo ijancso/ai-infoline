@@ -39,7 +39,7 @@ def _gather(action: str) -> Gather:
         action=action,
         method="POST",
         language=TTS_LANGUAGE,
-        speech_timeout="1",
+        speech_timeout="0.5",
         enhanced=True,
     )
 
