@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import APIRouter, Depends, Form, Header, HTTPException, Request
 from fastapi.responses import Response
@@ -68,6 +69,8 @@ async def gather_webhook(
         k: v for k, v in {"CallSid": CallSid, "To": To, "SpeechResult": SpeechResult, "Confidence": Confidence, "Digits": Digits}.items() if v is not None
     })
 
+    t0 = time.monotonic()
+
     if not SpeechResult and not Digits:
         twiml = build_no_input_twiml(gather_action="/twilio/gather")
         return Response(content=twiml, media_type="application/xml")
@@ -90,6 +93,8 @@ async def gather_webhook(
         db=db,
         call_id=call_id,
     )
+    elapsed_ms = int((time.monotonic() - t0) * 1000)
+    logger.info("Gather kész | call_sid=%s | total=%dms", CallSid, elapsed_ms)
     return Response(content=twiml, media_type="application/xml")
 
 
