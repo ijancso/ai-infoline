@@ -179,5 +179,7 @@ async def _verify_signature(
     if os.getenv("ENVIRONMENT", "development") == "development":
         return
     url = str(request.url)
+    if request.headers.get("x-forwarded-proto") == "https":
+        url = url.replace("http://", "https://", 1)
     if not verify_twilio_signature(signature, url, params):
         raise HTTPException(status_code=403, detail="Invalid Twilio signature")
