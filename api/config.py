@@ -7,8 +7,10 @@ class Settings(BaseSettings):
     database_url: str
     anthropic_api_key: str
     deepgram_api_key: Optional[str] = None
-    twilio_account_sid: str
-    twilio_auth_token: str
+    telnyx_api_key: str
+    telnyx_public_key: Optional[str] = None
+    twilio_account_sid: Optional[str] = None
+    twilio_auth_token: Optional[str] = None
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None
     do_spaces_key: str
