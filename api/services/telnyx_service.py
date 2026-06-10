@@ -30,7 +30,7 @@ def verify_telnyx_signature(
 def _gather(action: str) -> str:
     return (
         f'<Gather input="speech" action="{action}" method="POST" '
-        f'language="hu-HU" speechTimeout="1">'
+        f'language="en-US" speechTimeout="1" timeout="8">'
     )
 
 
@@ -71,10 +71,8 @@ async def build_response_twiml(
     db=None,
     call_id=None,
 ) -> str:
-    from services.claude_service import get_ai_reply
-    from services.tts_service import tts_token
-    ai_reply = await get_ai_reply(user_input, call_sid, system_prompt, db=db, call_id=call_id)
-    token = await tts_token(ai_reply)
+    from services.claude_service import get_streaming_tts_token
+    token, _ = await get_streaming_tts_token(user_input, call_sid, system_prompt, db=db, call_id=call_id)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"

@@ -86,7 +86,7 @@ async def voice_webhook(
     return Response(content=twiml, media_type="application/xml")
 
 
-@router.post("/gather", summary="Speech/DTMF input webhook")
+@router.post("/gather", summary="Speech input webhook")
 async def gather_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -102,10 +102,12 @@ async def gather_webhook(
     SpeechResult = form.get("SpeechResult")
     Digits = form.get("Digits")
 
+    base = _base_url(request)
+
     if not SpeechResult and not Digits:
         twiml = await build_no_input_twiml(
             gather_action="/telnyx/gather",
-            base_url=_base_url(request),
+            base_url=base,
         )
         return Response(content=twiml, media_type="application/xml")
 
@@ -118,18 +120,17 @@ async def gather_webhook(
         if call:
             call_id = call.id
 
-    user_input = SpeechResult or Digits
     twiml = await build_response_twiml(
-        user_input=user_input,
+        user_input=SpeechResult or Digits,
         call_sid=CallSid,
         gather_action="/telnyx/gather",
-        base_url=_base_url(request),
+        base_url=base,
         system_prompt=tenant.system_prompt if tenant else None,
         db=db,
         call_id=call_id,
     )
     elapsed_ms = int((time.monotonic() - t0) * 1000)
-    logger.info("Gather kész | call_sid=%s | total=%dms", CallSid, elapsed_ms)
+    logger.info("Gather kész | call_sid=%s | total=%dms | input=%s", CallSid, elapsed_ms, SpeechResult)
     return Response(content=twiml, media_type="application/xml")
 
 
