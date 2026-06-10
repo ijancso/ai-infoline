@@ -1,13 +1,6 @@
 import base64
-import hashlib
-import hmac
 import os
-import time
 from typing import Optional
-
-
-TTS_LANGUAGE = "hu-HU"
-TTS_VOICE = "Google.hu-HU-Standard-A"
 
 
 def verify_telnyx_signature(
@@ -22,7 +15,6 @@ def verify_telnyx_signature(
         return False
     try:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        from cryptography.hazmat.primitives.serialization import load_der_public_key
         from cryptography.exceptions import InvalidSignature
 
         signed_payload = f"{timestamp_header}|".encode() + body
@@ -38,32 +30,32 @@ def verify_telnyx_signature(
 def _gather(action: str) -> str:
     return (
         f'<Gather input="speech" action="{action}" method="POST" '
-        f'language="{TTS_LANGUAGE}" speechTimeout="1">'
+        f'language="hu-HU" speechTimeout="1">'
     )
 
 
-def build_greeting_twiml(gather_action: str, caller: Optional[str] = None) -> str:
+async def build_greeting_twiml(gather_action: str, base_url: str) -> str:
+    from services.tts_service import tts_token
+    token = await tts_token("Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?")
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"
         f"{_gather(gather_action)}"
-        f'<Say language="{TTS_LANGUAGE}" voice="{TTS_VOICE}">'
-        "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?"
-        "</Say>"
+        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
         "</Gather>"
         f'<Redirect method="POST">{gather_action}</Redirect>'
         "</Response>"
     )
 
 
-def build_no_input_twiml(gather_action: str) -> str:
+async def build_no_input_twiml(gather_action: str, base_url: str) -> str:
+    from services.tts_service import tts_token
+    token = await tts_token("Sajnálom, nem hallottam. Kérem, mondja el kérdését!")
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"
         f"{_gather(gather_action)}"
-        f'<Say language="{TTS_LANGUAGE}" voice="{TTS_VOICE}">'
-        "Sajnálom, nem hallottam. Kérem, mondja el kérdését!"
-        "</Say>"
+        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
         "</Gather>"
         f'<Redirect method="POST">{gather_action}</Redirect>'
         "</Response>"
@@ -74,18 +66,20 @@ async def build_response_twiml(
     user_input: str,
     call_sid: Optional[str],
     gather_action: str,
+    base_url: str,
     system_prompt: Optional[str] = None,
     db=None,
     call_id=None,
 ) -> str:
     from services.claude_service import get_ai_reply
+    from services.tts_service import tts_token
     ai_reply = await get_ai_reply(user_input, call_sid, system_prompt, db=db, call_id=call_id)
-
+    token = await tts_token(ai_reply)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"
         f"{_gather(gather_action)}"
-        f'<Say language="{TTS_LANGUAGE}" voice="{TTS_VOICE}">{ai_reply}</Say>'
+        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
         "</Gather>"
         f'<Redirect method="POST">{gather_action}</Redirect>'
         "</Response>"

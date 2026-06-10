@@ -1,11 +1,11 @@
 import logging
 import time
+from urllib.parse import parse_qs
 
-from fastapi import APIRouter, Depends, Form, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated, Optional
 
 from db import get_db
 from models import Call
@@ -23,18 +23,48 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/telnyx", tags=["telnyx"])
 
 
+def _parse_form(body: bytes) -> dict:
+    parsed = parse_qs(body.decode("utf-8"), keep_blank_values=True)
+    return {k: v[0] for k, v in parsed.items()}
+
+
+def _base_url(request: Request) -> str:
+    forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    return f"{forwarded_proto}://{request.url.netloc}"
+
+
+async def _verify_signature(body: bytes, request: Request) -> None:
+    import os
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        return
+    from config import settings
+    signature = request.headers.get("telnyx-signature-ed25519")
+    timestamp = request.headers.get("telnyx-timestamp")
+    if not verify_telnyx_signature(body, signature, timestamp, settings.telnyx_public_key):
+        raise HTTPException(status_code=403, detail="Invalid Telnyx signature")
+
+
+@router.get("/audio/{token}", summary="Serve TTS audio")
+async def audio(token: str):
+    from services.tts_service import get_audio
+    data = get_audio(token)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Audio not found")
+    return Response(content=data, media_type="audio/mpeg")
+
+
 @router.post("/voice", summary="Incoming call webhook")
 async def voice_webhook(
     request: Request,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    telnyx_signature_ed25519: Annotated[Optional[str], Header()] = None,
-    telnyx_timestamp: Annotated[Optional[str], Header()] = None,
-    CallSid: Annotated[Optional[str], Form()] = None,
-    From: Annotated[Optional[str], Form()] = None,
-    To: Annotated[Optional[str], Form()] = None,
-    CallStatus: Annotated[Optional[str], Form()] = None,
+    db: AsyncSession = Depends(get_db),
 ):
-    await _verify_signature(request, telnyx_signature_ed25519, telnyx_timestamp)
+    body = await request.body()
+    await _verify_signature(body, request)
+    form = _parse_form(body)
+
+    CallSid = form.get("CallSid")
+    From = form.get("From")
+    To = form.get("To")
 
     tenant = await get_tenant_by_phone(db, To) if To else None
     if tenant is None:
@@ -49,28 +79,34 @@ async def voice_webhook(
             tenant_id=tenant.id if tenant else None,
         )
 
-    twiml = build_greeting_twiml(gather_action="/telnyx/gather", caller=From)
+    twiml = await build_greeting_twiml(
+        gather_action="/telnyx/gather",
+        base_url=_base_url(request),
+    )
     return Response(content=twiml, media_type="application/xml")
 
 
 @router.post("/gather", summary="Speech/DTMF input webhook")
 async def gather_webhook(
     request: Request,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    telnyx_signature_ed25519: Annotated[Optional[str], Header()] = None,
-    telnyx_timestamp: Annotated[Optional[str], Header()] = None,
-    CallSid: Annotated[Optional[str], Form()] = None,
-    To: Annotated[Optional[str], Form()] = None,
-    SpeechResult: Annotated[Optional[str], Form()] = None,
-    Confidence: Annotated[Optional[str], Form()] = None,
-    Digits: Annotated[Optional[str], Form()] = None,
+    db: AsyncSession = Depends(get_db),
 ):
-    await _verify_signature(request, telnyx_signature_ed25519, telnyx_timestamp)
+    body = await request.body()
+    await _verify_signature(body, request)
+    form = _parse_form(body)
 
     t0 = time.monotonic()
 
+    CallSid = form.get("CallSid")
+    To = form.get("To")
+    SpeechResult = form.get("SpeechResult")
+    Digits = form.get("Digits")
+
     if not SpeechResult and not Digits:
-        twiml = build_no_input_twiml(gather_action="/telnyx/gather")
+        twiml = await build_no_input_twiml(
+            gather_action="/telnyx/gather",
+            base_url=_base_url(request),
+        )
         return Response(content=twiml, media_type="application/xml")
 
     tenant = await get_tenant_by_phone(db, To) if To else None
@@ -87,6 +123,7 @@ async def gather_webhook(
         user_input=user_input,
         call_sid=CallSid,
         gather_action="/telnyx/gather",
+        base_url=_base_url(request),
         system_prompt=tenant.system_prompt if tenant else None,
         db=db,
         call_id=call_id,
@@ -99,16 +136,17 @@ async def gather_webhook(
 @router.post("/status", summary="Call status callback")
 async def status_callback(
     request: Request,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    telnyx_signature_ed25519: Annotated[Optional[str], Header()] = None,
-    telnyx_timestamp: Annotated[Optional[str], Header()] = None,
-    CallSid: Annotated[Optional[str], Form()] = None,
-    CallStatus: Annotated[Optional[str], Form()] = None,
-    CallDuration: Annotated[Optional[str], Form()] = None,
-    From: Annotated[Optional[str], Form()] = None,
-    To: Annotated[Optional[str], Form()] = None,
+    db: AsyncSession = Depends(get_db),
 ):
-    await _verify_signature(request, telnyx_signature_ed25519, telnyx_timestamp)
+    body = await request.body()
+    await _verify_signature(body, request)
+    form = _parse_form(body)
+
+    CallSid = form.get("CallSid")
+    CallStatus = form.get("CallStatus")
+    CallDuration = form.get("CallDuration")
+    From = form.get("From")
+    To = form.get("To")
 
     if CallSid:
         await upsert_call(
@@ -125,17 +163,3 @@ async def status_callback(
         logger.info("Call upserted | call_sid=%s | status=%s", CallSid, CallStatus)
 
     return Response(status_code=204)
-
-
-async def _verify_signature(
-    request: Request,
-    signature: Optional[str],
-    timestamp: Optional[str],
-) -> None:
-    import os
-    if os.getenv("ENVIRONMENT", "development") == "development":
-        return
-    from config import settings
-    body = await request.body()
-    if not verify_telnyx_signature(body, signature, timestamp, settings.telnyx_public_key):
-        raise HTTPException(status_code=403, detail="Invalid Telnyx signature")

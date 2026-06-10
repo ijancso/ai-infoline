@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     database_url: str
     anthropic_api_key: str
     deepgram_api_key: Optional[str] = None
+    google_api_key: Optional[str] = None
     telnyx_api_key: str
     telnyx_public_key: Optional[str] = None
     twilio_account_sid: Optional[str] = None
