@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { tenantApi } from '../../lib/tenant-api'
 
 export default function PortalSettings({ tenant, onUpdate }) {
+  const [greeting, setGreeting] = useState(tenant.greeting ?? '')
   const [prompt, setPrompt] = useState(tenant.system_prompt ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -13,7 +14,7 @@ export default function PortalSettings({ tenant, onUpdate }) {
     setSaved(false)
     setError('')
     try {
-      const updated = await tenantApi.updateMe({ system_prompt: prompt })
+      const updated = await tenantApi.updateMe({ greeting: greeting || null, system_prompt: prompt })
       onUpdate(updated)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -29,6 +30,21 @@ export default function PortalSettings({ tenant, onUpdate }) {
       <h1 className="text-xl font-semibold text-gray-900 mb-6">Beállítások</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Köszöntő szöveg
+          </label>
+          <p className="text-xs text-gray-400 mb-2">
+            Ezt hallja a hívó fél a kapcsolat felépülésekor.
+          </p>
+          <textarea
+            value={greeting}
+            onChange={(e) => setGreeting(e.target.value)}
+            rows={2}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+            placeholder="Pl.: Üdvözlöm! Miben segíthetek?"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             System prompt
