@@ -15,6 +15,7 @@ class Tenant(Base):
     slug: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     system_prompt: Mapped[str | None] = mapped_column(Text)
     greeting: Mapped[str | None] = mapped_column(Text)
+    knowledge_base: Mapped[str | None] = mapped_column(Text)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(64), unique=True)
     api_key: Mapped[uuid.UUID] = mapped_column(unique=True, index=True, default=uuid.uuid4, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
