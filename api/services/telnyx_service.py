@@ -37,9 +37,12 @@ def _gather(action: str) -> str:
     )
 
 
-async def build_greeting_twiml(gather_action: str, base_url: str) -> str:
+DEFAULT_GREETING = "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?"
+
+
+async def build_greeting_twiml(gather_action: str, base_url: str, greeting: str | None = None) -> str:
     from services.tts_service import tts_token
-    token = await tts_token("Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?")
+    token = await tts_token(greeting or DEFAULT_GREETING)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"

@@ -82,6 +82,7 @@ async def voice_webhook(
     twiml = await build_greeting_twiml(
         gather_action="/telnyx/gather",
         base_url=_base_url(request),
+        greeting=tenant.greeting if tenant else None,
     )
     return Response(content=twiml, media_type="application/xml")
 

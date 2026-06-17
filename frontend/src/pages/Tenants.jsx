@@ -19,11 +19,12 @@ function Modal({ title, onClose, children }) {
 function TenantForm({ initial = {}, onSubmit, loading, error }) {
   const [name, setName] = useState(initial.name ?? '')
   const [slug, setSlug] = useState(initial.slug ?? '')
+  const [greeting, setGreeting] = useState(initial.greeting ?? '')
   const [prompt, setPrompt] = useState(initial.system_prompt ?? '')
 
   function handleSubmit(e) {
     e.preventDefault()
-    onSubmit({ name, slug, system_prompt: prompt || null })
+    onSubmit({ name, slug, greeting: greeting || null, system_prompt: prompt || null })
   }
 
   return (
@@ -47,6 +48,16 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
           title="Csak kisbetű, szám és kötőjel"
           disabled={!!initial.slug}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-50 disabled:text-gray-400"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Köszöntő szöveg</label>
+        <textarea
+          value={greeting}
+          onChange={(e) => setGreeting(e.target.value)}
+          rows={2}
+          placeholder="Pl. Üdvözlöm! Jancsó István AI-agentje vagyok."
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
         />
       </div>
       <div>
