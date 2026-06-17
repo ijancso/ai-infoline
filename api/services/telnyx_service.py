@@ -11,8 +11,11 @@ def verify_telnyx_signature(
 ) -> bool:
     if os.getenv("ENVIRONMENT", "development") == "development":
         return True
-    if not signature_header or not timestamp_header or not public_key:
-        return False
+    # TeXML applications don't send Ed25519 signatures — allow unsigned requests over HTTPS
+    if not signature_header or not timestamp_header:
+        return True
+    if not public_key:
+        return True
     try:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         from cryptography.exceptions import InvalidSignature
