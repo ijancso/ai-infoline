@@ -70,12 +70,22 @@ async def _save_turn_to_db(
     await db.commit()
 
 
+def _build_prompt(system_prompt: Optional[str], knowledge_base: Optional[str]) -> str:
+    parts = [SYSTEM_PROMPT]
+    if system_prompt:
+        parts.append(system_prompt)
+    if knowledge_base:
+        parts.append(f"## Tudásbázis\n\n{knowledge_base}")
+    return "\n\n".join(parts)
+
+
 async def get_ai_reply(
     user_input: str,
     call_sid: Optional[str],
     system_prompt: Optional[str] = None,
     db: Optional[AsyncSession] = None,
     call_id: Optional[uuid.UUID] = None,
+    knowledge_base: Optional[str] = None,
 ) -> str:
     client = _get_client()
     session_key = call_sid or "__anonymous__"
@@ -89,7 +99,7 @@ async def get_ai_reply(
     messages = _sessions[session_key]
     messages.append({"role": "user", "content": user_input})
 
-    effective_prompt = f"{SYSTEM_PROMPT}\n\n{system_prompt}" if system_prompt else SYSTEM_PROMPT
+    effective_prompt = _build_prompt(system_prompt, knowledge_base)
 
     try:
         t0 = datetime.now(timezone.utc)
@@ -140,6 +150,7 @@ async def get_streaming_tts_token(
     system_prompt: Optional[str] = None,
     db: Optional[AsyncSession] = None,
     call_id: Optional[uuid.UUID] = None,
+    knowledge_base: Optional[str] = None,
 ) -> str:
     """Stream Claude, launch TTS on first sentence immediately, cancel stream early.
 
@@ -158,7 +169,7 @@ async def get_streaming_tts_token(
 
     messages = _sessions[session_key]
     messages.append({"role": "user", "content": user_input})
-    effective_prompt = f"{SYSTEM_PROMPT}\n\n{system_prompt}" if system_prompt else SYSTEM_PROMPT
+    effective_prompt = _build_prompt(system_prompt, knowledge_base)
 
     t0 = datetime.now(timezone.utc)
     buffer = ""

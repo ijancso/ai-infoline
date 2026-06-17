@@ -127,6 +127,7 @@ async def gather_webhook(
         gather_action="/telnyx/gather",
         base_url=base,
         system_prompt=tenant.system_prompt if tenant else None,
+        knowledge_base=tenant.knowledge_base if tenant else None,
         db=db,
         call_id=call_id,
     )

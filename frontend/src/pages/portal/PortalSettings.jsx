@@ -4,6 +4,7 @@ import { tenantApi } from '../../lib/tenant-api'
 export default function PortalSettings({ tenant, onUpdate }) {
   const [greeting, setGreeting] = useState(tenant.greeting ?? '')
   const [prompt, setPrompt] = useState(tenant.system_prompt ?? '')
+  const [knowledgeBase, setKnowledgeBase] = useState(tenant.knowledge_base ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -14,7 +15,7 @@ export default function PortalSettings({ tenant, onUpdate }) {
     setSaved(false)
     setError('')
     try {
-      const updated = await tenantApi.updateMe({ greeting: greeting || null, system_prompt: prompt })
+      const updated = await tenantApi.updateMe({ greeting: greeting || null, system_prompt: prompt, knowledge_base: knowledgeBase || null })
       onUpdate(updated)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -58,6 +59,22 @@ export default function PortalSettings({ tenant, onUpdate }) {
             rows={10}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
             placeholder="Pl.: Te egy ügyfélszolgálatos asszisztens vagy..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Tudásbázis
+          </label>
+          <p className="text-xs text-gray-400 mb-2">
+            Az AI-nak elérhető dokumentumok, cég- vagy termékinformációk.
+          </p>
+          <textarea
+            value={knowledgeBase}
+            onChange={(e) => setKnowledgeBase(e.target.value)}
+            rows={12}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
+            placeholder="Pl.: Nyitvatartás: H-P 9-17h. Termékek: ..."
           />
         </div>
 

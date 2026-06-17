@@ -21,10 +21,11 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
   const [slug, setSlug] = useState(initial.slug ?? '')
   const [greeting, setGreeting] = useState(initial.greeting ?? '')
   const [prompt, setPrompt] = useState(initial.system_prompt ?? '')
+  const [knowledgeBase, setKnowledgeBase] = useState(initial.knowledge_base ?? '')
 
   function handleSubmit(e) {
     e.preventDefault()
-    onSubmit({ name, slug, greeting: greeting || null, system_prompt: prompt || null })
+    onSubmit({ name, slug, greeting: greeting || null, system_prompt: prompt || null, knowledge_base: knowledgeBase || null })
   }
 
   return (
@@ -67,6 +68,16 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
           onChange={(e) => setPrompt(e.target.value)}
           rows={4}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Tudásbázis</label>
+        <textarea
+          value={knowledgeBase}
+          onChange={(e) => setKnowledgeBase(e.target.value)}
+          rows={5}
+          placeholder="Az AI számára elérhető dokumentumok, információk..."
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
         />
       </div>
       {error && <p className="text-red-500 text-xs">{error}</p>}

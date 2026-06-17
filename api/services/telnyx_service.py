@@ -74,11 +74,12 @@ async def build_response_twiml(
     gather_action: str,
     base_url: str,
     system_prompt: Optional[str] = None,
+    knowledge_base: Optional[str] = None,
     db=None,
     call_id=None,
 ) -> str:
     from services.claude_service import get_streaming_tts_token
-    token, _ = await get_streaming_tts_token(user_input, call_sid, system_prompt, db=db, call_id=call_id)
+    token, _ = await get_streaming_tts_token(user_input, call_sid, system_prompt, db=db, call_id=call_id, knowledge_base=knowledge_base)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
         "<Response>"
