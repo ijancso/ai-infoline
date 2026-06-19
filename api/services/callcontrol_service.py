@@ -42,7 +42,7 @@ async def play_audio(ccid: str, audio_url: str, client_state: str = "") -> bool:
     body = {"audio_url": audio_url}
     if client_state:
         body["client_state"] = encode_state(client_state)
-    return await _post(ccid, "play_audio", body)
+    return await _post(ccid, "playback_start", body)
 
 
 async def start_streaming(ccid: str, stream_url: str) -> bool:
