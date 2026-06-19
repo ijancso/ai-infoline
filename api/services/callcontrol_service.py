@@ -21,14 +21,16 @@ def decode_state(raw: str) -> str:
 
 async def _post(ccid: str, action: str, body: dict | None = None) -> bool:
     from config import settings
+    url = f"{_BASE}/{quote(ccid, safe='')}/actions/{action}"
+    logger.info("CC POST %s", url[:80])
     async with httpx.AsyncClient(timeout=10) as client:
         r = await client.post(
-            f"{_BASE}/{quote(ccid, safe='')}/actions/{action}",
+            url,
             json=body or {},
             headers={"Authorization": f"Bearer {settings.telnyx_api_key}"},
         )
     if not r.is_success:
-        logger.error("CC %s failed: %s %s", action, r.status_code, r.text[:300])
+        logger.error("CC %s failed: %s | url=%s | body=%s", action, r.status_code, url[:80], r.text[:400])
     return r.is_success
 
 
