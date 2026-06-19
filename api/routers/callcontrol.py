@@ -48,6 +48,7 @@ async def call_events(request: Request):
         }
 
     elif event_type == "call.answered":
+        logger.info("call.answered | ccid in sessions: %s | sessions: %s", ccid in _sessions, list(_sessions.keys())[:3])
         if ccid in _sessions:
             asyncio.create_task(_safe(_on_answered(ccid), "on_answered", ccid))
 
@@ -69,6 +70,7 @@ async def call_events(request: Request):
 
 
 async def _on_answered(ccid: str):
+    logger.info("_on_answered start | ccid=%.24s", ccid)
     from db import AsyncSessionLocal
     from services.callcontrol_service import play_audio
     from services.tenant_service import get_tenant_by_phone
@@ -76,6 +78,7 @@ async def _on_answered(ccid: str):
 
     session = _sessions.get(ccid)
     if not session:
+        logger.warning("_on_answered: no session for ccid=%.24s", ccid)
         return
 
     async with AsyncSessionLocal() as db:
