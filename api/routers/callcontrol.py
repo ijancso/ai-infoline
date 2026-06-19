@@ -13,6 +13,13 @@ from fastapi.responses import JSONResponse
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/callcontrol", tags=["callcontrol"])
 
+
+async def _safe(coro, name: str, ccid: str):
+    try:
+        await coro
+    except Exception as e:
+        logger.error("Task %s failed | ccid=%.24s | %s: %s", name, ccid, type(e).__name__, e)
+
 BASE_URL = "https://infoline.dev"
 
 # call_control_id -> session dict
@@ -42,13 +49,14 @@ async def call_events(request: Request):
 
     elif event_type == "call.answered":
         if ccid in _sessions:
-            asyncio.create_task(_on_answered(ccid))
+            asyncio.create_task(_safe(_on_answered(ccid), "on_answered", ccid))
 
     elif event_type == "call.playback.ended":
         from services.callcontrol_service import decode_state
         state = decode_state(payload.get("client_state", ""))
+        logger.info("Playback ended | state=%s | ccid=%.24s", state, ccid)
         if state in ("greeting", "response", "no_input") and ccid in _sessions:
-            asyncio.create_task(_start_listening(ccid))
+            asyncio.create_task(_safe(_start_listening(ccid), "start_listening", ccid))
 
     elif event_type == "call.hangup":
         session = _sessions.pop(ccid, None)
@@ -169,9 +177,9 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
     logger.info("Stream done | ccid=%.24s | %dms | input=%s", ccid, elapsed, transcript)
 
     if transcript:
-        asyncio.create_task(_respond(ccid, transcript))
+        asyncio.create_task(_safe(_respond(ccid, transcript), "respond", ccid))
     else:
-        asyncio.create_task(_play_no_input(ccid))
+        asyncio.create_task(_safe(_play_no_input(ccid), "play_no_input", ccid))
 
 
 async def _play_no_input(ccid: str):
