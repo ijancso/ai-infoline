@@ -33,7 +33,19 @@ def verify_telnyx_signature(
 def _gather(action: str) -> str:
     return (
         f'<Gather input="speech" action="{action}" method="POST" '
-        f'language="hu-HU" speechTimeout="auto" timeout="8">'
+        f'language="hu-HU" speechTimeout="2" timeout="10"/>'
+    )
+
+
+def _twiml(audio_url: str, gather_action: str) -> str:
+    """Play audio first, then open a clean Gather (no echo from TTS into STT)."""
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        "<Response>"
+        f"<Play>{audio_url}</Play>"
+        f"{_gather(gather_action)}"
+        f'<Redirect method="POST">{gather_action}</Redirect>'
+        "</Response>"
     )
 
 
@@ -43,29 +55,13 @@ DEFAULT_GREETING = "Üdvözöljük az AI Infoline szolgáltatásban! Miben segí
 async def build_greeting_twiml(gather_action: str, base_url: str, greeting: str | None = None) -> str:
     from services.tts_service import tts_token
     token = await tts_token(greeting or DEFAULT_GREETING)
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        "<Response>"
-        f"{_gather(gather_action)}"
-        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
-        "</Gather>"
-        f'<Redirect method="POST">{gather_action}</Redirect>'
-        "</Response>"
-    )
+    return _twiml(f"{base_url}/telnyx/audio/{token}", gather_action)
 
 
 async def build_no_input_twiml(gather_action: str, base_url: str) -> str:
     from services.tts_service import tts_token
     token = await tts_token("Sajnálom, nem hallottam. Kérem, mondja el kérdését!")
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        "<Response>"
-        f"{_gather(gather_action)}"
-        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
-        "</Gather>"
-        f'<Redirect method="POST">{gather_action}</Redirect>'
-        "</Response>"
-    )
+    return _twiml(f"{base_url}/telnyx/audio/{token}", gather_action)
 
 
 async def build_response_twiml(
@@ -80,12 +76,4 @@ async def build_response_twiml(
 ) -> str:
     from services.claude_service import get_streaming_tts_token
     token, _ = await get_streaming_tts_token(user_input, call_sid, system_prompt, db=db, call_id=call_id, knowledge_base=knowledge_base)
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        "<Response>"
-        f"{_gather(gather_action)}"
-        f"<Play>{base_url}/telnyx/audio/{token}</Play>"
-        "</Gather>"
-        f'<Redirect method="POST">{gather_action}</Redirect>'
-        "</Response>"
-    )
+    return _twiml(f"{base_url}/telnyx/audio/{token}", gather_action)
