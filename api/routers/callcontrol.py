@@ -41,11 +41,11 @@ async def call_events(request: Request):
 
     if event_type == "call.initiated" and payload.get("direction") == "incoming":
         from services.callcontrol_service import answer
-        await answer(ccid)
         _sessions[ccid] = {
             "from": payload.get("from"),
             "to": payload.get("to"),
         }
+        await answer(ccid)
 
     elif event_type == "call.answered":
         logger.info("call.answered | ccid in sessions: %s | sessions: %s", ccid in _sessions, list(_sessions.keys())[:3])
