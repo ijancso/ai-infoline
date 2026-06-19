@@ -1,5 +1,6 @@
 import base64
 import logging
+from urllib.parse import quote
 
 import httpx
 
@@ -22,7 +23,7 @@ async def _post(ccid: str, action: str, body: dict | None = None) -> bool:
     from config import settings
     async with httpx.AsyncClient(timeout=10) as client:
         r = await client.post(
-            f"{_BASE}/{ccid}/actions/{action}",
+            f"{_BASE}/{quote(ccid, safe='')}/actions/{action}",
             json=body or {},
             headers={"Authorization": f"Bearer {settings.telnyx_api_key}"},
         )
