@@ -33,7 +33,7 @@ def verify_telnyx_signature(
 def _gather(action: str) -> str:
     return (
         f'<Gather input="speech" action="{action}" method="POST" '
-        f'language="hu-HU" speechTimeout="2" timeout="8">'
+        f'language="en-US" speechTimeout="2" timeout="8">'
     )
 
 
