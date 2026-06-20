@@ -122,8 +122,8 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
 
     dg_url = (
         "wss://api.deepgram.com/v1/listen"
-        "?model=nova-2&language=hu&encoding=mulaw&sample_rate=8000"
-        "&channels=1&endpointing=500&interim_results=false"
+        "?model=nova-3&language=hu&encoding=mulaw&sample_rate=8000"
+        "&channels=1&endpointing=500&interim_results=false&smart_format=true"
     )
 
     transcript: Optional[str] = None
