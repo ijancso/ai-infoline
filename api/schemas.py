@@ -12,6 +12,7 @@ class TenantCreate(BaseModel):
     slug: str
     system_prompt: Optional[str] = None
     greeting: Optional[str] = None
+    knowledge_base: Optional[str] = None
     stripe_customer_id: Optional[str] = None
 
 
@@ -19,6 +20,7 @@ class TenantUpdate(BaseModel):
     name: Optional[str] = None
     system_prompt: Optional[str] = None
     greeting: Optional[str] = None
+    knowledge_base: Optional[str] = None
     stripe_customer_id: Optional[str] = None
 
 
@@ -28,6 +30,7 @@ class TenantOut(BaseModel):
     slug: str
     system_prompt: Optional[str]
     greeting: Optional[str]
+    knowledge_base: Optional[str]
     stripe_customer_id: Optional[str]
     api_key: uuid.UUID
     created_at: datetime
