@@ -43,3 +43,21 @@ override.tf.json
 *.swp
 *.swo
 .DS_Store
+
+# Interview-prep docs (kept local, not published)
+ARCHITECTURE.md
+DEV_JOURNEY.md
+ELEVENLABS_INTEGRATION.md
+LATENCY_CASE_STUDY.md
+SYSTEM_OVERVIEW.md
+generate_pdf.py
+system_overview_hu.pdf
+system_overview_en.pdf
+
+# Generated / scratch artifacts
+architecture_diagram_render.png
+architecture_diagram_en_render.png
+screenshot*.jpg
+history.txt
+input.txt
+output.txt
