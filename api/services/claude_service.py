@@ -151,12 +151,18 @@ async def get_streaming_tts_token(
     db: Optional[AsyncSession] = None,
     call_id: Optional[uuid.UUID] = None,
     knowledge_base: Optional[str] = None,
+    timer: Optional["object"] = None,
 ) -> str:
     """Stream Claude, launch TTS on first sentence immediately, cancel stream early.
 
     Returns a TTS audio token. TTS and DB save run concurrently to minimise latency.
     """
     from services.tts_service import tts_token
+
+    if timer is None:
+        from services.latency_debug import ENABLED as _LD_ENABLED, new_timer as _new_timer
+        if _LD_ENABLED:
+            timer = _new_timer(call_sid or "emu")
 
     client = _get_client()
     session_key = call_sid or "__anonymous__"
@@ -175,8 +181,11 @@ async def get_streaming_tts_token(
     buffer = ""
     first_sentence: Optional[str] = None
     tts_task: Optional[asyncio.Task] = None
+    first_token_seen = False
 
     try:
+        if timer is not None:
+            timer.mark("llm_request_sent", f"sys_len={len(effective_prompt)} msgs={len(messages)}")
         async with client.messages.stream(
             model="claude-haiku-4-5-20251001",
             max_tokens=80,
@@ -184,10 +193,16 @@ async def get_streaming_tts_token(
             messages=messages,
         ) as stream:
             async for chunk in stream.text_stream:
+                if not first_token_seen:
+                    first_token_seen = True
+                    if timer is not None:
+                        timer.mark("llm_first_token")
                 buffer += chunk
                 m = re.search(r'[.!?](?:\s|$)', buffer)
                 if m:
                     first_sentence = buffer[:m.start() + 1].strip()
+                    if timer is not None:
+                        timer.mark("llm_done", f"first_sentence_len={len(first_sentence)}")
                     tts_task = asyncio.create_task(tts_token(first_sentence))
                     break  # cancel remaining Claude stream
 
@@ -195,6 +210,8 @@ async def get_streaming_tts_token(
             first_sentence = buffer.strip() or "Sajnálom, nem tudtam válaszolni."
             if first_sentence[-1] not in '.!?':
                 first_sentence += '.'
+            if timer is not None:
+                timer.mark("llm_done", "no_sentence_boundary")
             tts_task = asyncio.create_task(tts_token(first_sentence))
 
         elapsed_claude_ms = int((datetime.now(timezone.utc) - t0).total_seconds() * 1000)
@@ -205,6 +222,8 @@ async def get_streaming_tts_token(
             await _save_turn_to_db(db, call_id, call_sid, user_input, first_sentence)
 
         token = await tts_task
+        if timer is not None:
+            timer.mark("tts_first_audio")
         elapsed_total_ms = int((datetime.now(timezone.utc) - t0).total_seconds() * 1000)
 
         logger.info(

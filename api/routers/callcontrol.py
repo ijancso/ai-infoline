@@ -127,6 +127,7 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
     )
 
     transcript: Optional[str] = None
+    stt_done_at: Optional[float] = None
     t0 = time.monotonic()
 
     try:
@@ -136,13 +137,14 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
         ) as dg_ws:
 
             async def _recv_dg():
-                nonlocal transcript
+                nonlocal transcript, stt_done_at
                 async for raw in dg_ws:
                     data = json.loads(raw)
                     alts = data.get("channel", {}).get("alternatives", [{}])
                     text = alts[0].get("transcript", "") if alts else ""
                     if data.get("is_final") and text:
                         transcript = text
+                        stt_done_at = time.monotonic()
                         return
 
             dg_task = asyncio.create_task(_recv_dg())
@@ -180,7 +182,9 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
     logger.info("Stream done | ccid=%.24s | %dms | input=%s", ccid, elapsed, transcript)
 
     if transcript:
-        asyncio.create_task(_safe(_respond(ccid, transcript), "respond", ccid))
+        asyncio.create_task(
+            _safe(_respond(ccid, transcript, stt_done_at=stt_done_at), "respond", ccid)
+        )
     else:
         asyncio.create_task(_safe(_play_no_input(ccid), "play_no_input", ccid))
 
@@ -192,12 +196,13 @@ async def _play_no_input(ccid: str):
     await play_audio(ccid, f"{BASE_URL}/telnyx/audio/{token}", client_state="no_input")
 
 
-async def _respond(ccid: str, user_input: str):
+async def _respond(ccid: str, user_input: str, stt_done_at: Optional[float] = None):
     from db import AsyncSessionLocal
     from models import Call
     from services.call_service import upsert_call
     from services.callcontrol_service import play_audio
     from services.claude_service import get_streaming_tts_token
+    from services.latency_debug import new_timer
     from sqlalchemy import select
 
     session = _sessions.get(ccid)
@@ -205,6 +210,13 @@ async def _respond(ccid: str, user_input: str):
         return
 
     t0 = time.monotonic()
+    # Deepgram endpointing hold is 500ms; approximate speech_end_detected as stt_done - 0.5s
+    DG_ENDPOINTING_S = 0.5
+    speech_end_at = (stt_done_at - DG_ENDPOINTING_S) if stt_done_at else t0
+    timer = new_timer(
+        ccid, t0=speech_end_at, t0_label="speech_end_detected (estimated, DG endpointing=500ms)"
+    )
+    timer.mark("stt_done", f"len={len(user_input)}")
 
     async with AsyncSessionLocal() as db:
         await upsert_call(
@@ -217,6 +229,7 @@ async def _respond(ccid: str, user_input: str):
         result = await db.execute(select(Call).where(Call.call_sid == ccid))
         call = result.scalar_one_or_none()
         call_id = call.id if call else None
+        timer.mark("db_ready")
 
         token, reply = await get_streaming_tts_token(
             user_input=user_input,
@@ -225,9 +238,11 @@ async def _respond(ccid: str, user_input: str):
             knowledge_base=session.get("knowledge_base"),
             db=db,
             call_id=call_id,
+            timer=timer,
         )
 
     await play_audio(ccid, f"{BASE_URL}/telnyx/audio/{token}", client_state="response")
+    timer.mark("audio_sent")
 
     elapsed = int((time.monotonic() - t0) * 1000)
     logger.info("Response | ccid=%.24s | %dms | %s", ccid, elapsed, reply[:60])
