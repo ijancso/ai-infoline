@@ -4,8 +4,8 @@ export default function PortalLayout({ children, tenant, onLogout }) {
   const location = useLocation()
 
   const navLinks = [
-    { to: '/portal', label: 'Hívások' },
-    { to: '/portal/settings', label: 'Beállítások' },
+    { to: '/portal', label: 'Calls' },
+    { to: '/portal/settings', label: 'Settings' },
   ]
 
   return (
@@ -41,7 +41,7 @@ export default function PortalLayout({ children, tenant, onLogout }) {
               onClick={onLogout}
               className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
             >
-              Kijelentkezés
+              Sign out
             </button>
           </div>
         </div>

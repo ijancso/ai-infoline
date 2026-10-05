@@ -11,23 +11,23 @@ export default function PortalCallDetail() {
     tenantApi.getCall(callId).then(setCall).finally(() => setLoading(false))
   }, [callId])
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
-  if (!call) return <p className="text-sm text-red-500">Hívás nem található.</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
+  if (!call) return <p className="text-sm text-red-500">Call not found.</p>
 
   return (
     <div>
       <div className="mb-6">
-        <Link to="/portal" className="text-xs text-gray-400 hover:text-gray-700">← Hívások</Link>
-        <h1 className="text-xl font-semibold text-gray-900 mt-1">Hívás részletei</h1>
+        <Link to="/portal" className="text-xs text-gray-400 hover:text-gray-700">← Calls</Link>
+        <h1 className="text-xl font-semibold text-gray-900 mt-1">Call details</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          {new Date(call.created_at).toLocaleString('hu')}
+          {new Date(call.created_at).toLocaleString('en-US')}
           {call.duration_seconds != null && ` · ${call.duration_seconds}s`}
           {call.from_number && ` · ${call.from_number}`}
         </p>
       </div>
 
       {call.messages.length === 0 ? (
-        <p className="text-sm text-gray-400">Nincs rögzített üzenet ehhez a híváshoz.</p>
+        <p className="text-sm text-gray-400">No messages recorded for this call.</p>
       ) : (
         <div className="space-y-3">
           {call.messages.map((msg) => (
@@ -44,9 +44,9 @@ export default function PortalCallDetail() {
               >
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-gray-400' : 'text-gray-400'}`}>
-                  {msg.role === 'user' ? 'Hívó' : 'AI'}
+                  {msg.role === 'user' ? 'Caller' : 'AI'}
                   {' · '}
-                  {new Date(msg.created_at).toLocaleTimeString('hu')}
+                  {new Date(msg.created_at).toLocaleTimeString('en-US')}
                 </p>
               </div>
             </div>

@@ -27,7 +27,7 @@ function callStatusColor(status) {
 function formatDuration(seconds) {
   if (seconds == null) return '—'
   if (seconds < 60) return `${seconds}s`
-  return `${Math.floor(seconds / 60)}p ${seconds % 60}s`
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
 }
 
 export default function PortalDashboard({ tenant }) {
@@ -56,14 +56,14 @@ export default function PortalDashboard({ tenant }) {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <StatCard label="Összes hívás" value={calls.length} />
-        <StatCard label="Sikeres hívás" value={completedCalls} />
-        <StatCard label="Összes percek" value={Math.ceil(totalMinutes / 60)} suffix="perc" />
+        <StatCard label="Total calls" value={calls.length} />
+        <StatCard label="Successful calls" value={completedCalls} />
+        <StatCard label="Total minutes" value={Math.ceil(totalMinutes / 60)} suffix="min" />
       </div>
 
       {phones.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-700 mb-3">Telefonszámok</h2>
+          <h2 className="text-sm font-medium text-gray-700 mb-3">Phone numbers</h2>
           <div className="flex flex-wrap gap-2">
             {phones.map((p) => (
               <span key={p.id} className="bg-gray-100 text-gray-700 text-sm font-mono px-3 py-1.5 rounded-lg">
@@ -75,20 +75,20 @@ export default function PortalDashboard({ tenant }) {
       )}
 
       <div>
-        <h2 className="text-sm font-medium text-gray-700 mb-3">Legutóbbi hívások</h2>
+        <h2 className="text-sm font-medium text-gray-700 mb-3">Recent calls</h2>
         {loading ? (
-          <p className="text-sm text-gray-400">Betöltés...</p>
+          <p className="text-sm text-gray-400">Loading…</p>
         ) : calls.length === 0 ? (
-          <p className="text-sm text-gray-400">Még nem volt hívás.</p>
+          <p className="text-sm text-gray-400">No calls yet.</p>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
-                  <th className="text-left px-4 py-3 font-medium">Hívó</th>
-                  <th className="text-left px-4 py-3 font-medium">Státusz</th>
-                  <th className="text-left px-4 py-3 font-medium">Időtartam</th>
-                  <th className="text-left px-4 py-3 font-medium">Dátum</th>
+                  <th className="text-left px-4 py-3 font-medium">Caller</th>
+                  <th className="text-left px-4 py-3 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 font-medium">Duration</th>
+                  <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -97,18 +97,18 @@ export default function PortalDashboard({ tenant }) {
                   <tr key={c.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-gray-700">{c.from_number ?? '—'}</td>
                     <td className="px-4 py-3">
-                      <Badge color={callStatusColor(c.status)}>{c.status ?? 'ismeretlen'}</Badge>
+                      <Badge color={callStatusColor(c.status)}>{c.status ?? 'unknown'}</Badge>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{formatDuration(c.duration_seconds)}</td>
                     <td className="px-4 py-3 text-gray-400">
-                      {new Date(c.created_at).toLocaleString('hu')}
+                      {new Date(c.created_at).toLocaleString('en-US')}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         to={`/portal/calls/${c.id}`}
                         className="text-xs text-gray-400 hover:text-gray-700"
                       >
-                        Átírás
+                        Transcript
                       </Link>
                     </td>
                   </tr>

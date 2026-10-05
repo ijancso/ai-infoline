@@ -15,7 +15,7 @@ async function request(path, options = {}) {
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail ?? 'Hiba történt')
+    throw new Error(err.detail ?? 'An error occurred')
   }
   if (res.status === 204) return null
   return res.json()

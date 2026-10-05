@@ -28,24 +28,24 @@ function CallMeta({ call }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 mb-6 grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Hívó</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Caller</p>
         <p className="font-mono text-gray-800">{call.from_number ?? '—'}</p>
       </div>
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Hívott</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Called</p>
         <p className="font-mono text-gray-800">{call.to_number ?? '—'}</p>
       </div>
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Státusz</p>
-        <Badge color={callStatusColor(call.status)}>{call.status ?? 'ismeretlen'}</Badge>
+        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Status</p>
+        <Badge color={callStatusColor(call.status)}>{call.status ?? 'unknown'}</Badge>
       </div>
       <div>
-        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Időtartam</p>
-        <p className="text-gray-800">{call.duration_seconds != null ? `${call.duration_seconds} mp` : '—'}</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Duration</p>
+        <p className="text-gray-800">{call.duration_seconds != null ? `${call.duration_seconds} s` : '—'}</p>
       </div>
       <div className="col-span-2">
-        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Időpont</p>
-        <p className="text-gray-800">{new Date(call.created_at).toLocaleString('hu')}</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Timestamp</p>
+        <p className="text-gray-800">{new Date(call.created_at).toLocaleString('en-US')}</p>
       </div>
     </div>
   )
@@ -53,7 +53,7 @@ function CallMeta({ call }) {
 
 function Transcript({ messages }) {
   if (messages.length === 0) {
-    return <p className="text-sm text-gray-400">Nincs rögzített üzenet ehhez a híváshoz.</p>
+    return <p className="text-sm text-gray-400">No messages recorded for this call.</p>
   }
 
   return (
@@ -71,7 +71,7 @@ function Transcript({ messages }) {
             }`}
           >
             <p className="text-[10px] font-medium mb-1 opacity-50 uppercase tracking-wide">
-              {m.role === 'user' ? 'Hívó' : 'AI'}
+              {m.role === 'user' ? 'Caller' : 'AI'}
             </p>
             {m.content}
           </div>
@@ -91,8 +91,8 @@ function Recordings({ tenantId, callId }) {
       .finally(() => setLoading(false))
   }, [tenantId, callId])
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
-  if (recordings.length === 0) return <p className="text-sm text-gray-400">Nincs felvétel.</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
+  if (recordings.length === 0) return <p className="text-sm text-gray-400">No recordings.</p>
 
   return (
     <div className="space-y-3">
@@ -100,8 +100,8 @@ function Recordings({ tenantId, callId }) {
         <div key={r.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3">
           <p className="text-sm font-mono text-gray-700">{r.recording_sid}</p>
           <p className="text-xs text-gray-400 mt-0.5">
-            {r.duration_seconds != null ? `${r.duration_seconds} mp` : 'ismeretlen hossz'} ·{' '}
-            {new Date(r.created_at).toLocaleString('hu')}
+            {r.duration_seconds != null ? `${r.duration_seconds} s` : 'unknown length'} ·{' '}
+            {new Date(r.created_at).toLocaleString('en-US')}
           </p>
           <p className="text-xs text-gray-400 font-mono mt-1 truncate">{r.spaces_key}</p>
         </div>
@@ -124,16 +124,16 @@ export default function CallDetail() {
       .finally(() => setLoading(false))
   }, [tenantId, callId])
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
   if (error) return <p className="text-sm text-red-500">{error}</p>
 
   return (
     <div>
       <div className="mb-6">
         <Link to={`/tenants/${tenantId}`} className="text-xs text-gray-400 hover:text-gray-700">
-          ← Vissza a tenanthoz
+          ← Back to tenant
         </Link>
-        <h1 className="text-xl font-semibold text-gray-900 mt-1">Hívás részletei</h1>
+        <h1 className="text-xl font-semibold text-gray-900 mt-1">Call details</h1>
         <p className="text-xs text-gray-400 font-mono mt-0.5">{call.call_sid}</p>
       </div>
 
@@ -150,7 +150,7 @@ export default function CallDetail() {
                 : 'border-transparent text-gray-400 hover:text-gray-700'
             }`}
           >
-            {t === 'transcript' ? 'Átirat' : 'Felvételek'}
+            {t === 'transcript' ? 'Transcript' : 'Recordings'}
           </button>
         ))}
       </div>

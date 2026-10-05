@@ -14,7 +14,7 @@ export default function Layout({ children, onLogout }) {
             onClick={onLogout}
             className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
           >
-            Kijelentkezés
+            Sign out
           </button>
         </div>
       </nav>

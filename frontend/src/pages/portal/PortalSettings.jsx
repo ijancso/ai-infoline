@@ -28,22 +28,22 @@ export default function PortalSettings({ tenant, onUpdate }) {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">Beállítások</h1>
+      <h1 className="text-xl font-semibold text-gray-900 mb-6">Settings</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Köszöntő szöveg
+            Greeting
           </label>
           <p className="text-xs text-gray-400 mb-2">
-            Ezt hallja a hívó fél a kapcsolat felépülésekor.
+            This is what the caller hears when the call connects.
           </p>
           <textarea
             value={greeting}
             onChange={(e) => setGreeting(e.target.value)}
             rows={2}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-            placeholder="Pl.: Üdvözlöm! Miben segíthetek?"
+            placeholder="e.g. Hello! How can I help you?"
           />
         </div>
         <div>
@@ -51,30 +51,30 @@ export default function PortalSettings({ tenant, onUpdate }) {
             System prompt
           </label>
           <p className="text-xs text-gray-400 mb-2">
-            Ez az utasítás határozza meg az AI viselkedését hívás közben.
+            This instruction defines how the AI behaves during a call.
           </p>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={10}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
-            placeholder="Pl.: Te egy ügyfélszolgálatos asszisztens vagy..."
+            placeholder="e.g. You are a customer service assistant…"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Tudásbázis
+            Knowledge base
           </label>
           <p className="text-xs text-gray-400 mb-2">
-            Az AI-nak elérhető dokumentumok, cég- vagy termékinformációk.
+            Documents, company, or product info available to the AI.
           </p>
           <textarea
             value={knowledgeBase}
             onChange={(e) => setKnowledgeBase(e.target.value)}
             rows={12}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
-            placeholder="Pl.: Nyitvatartás: H-P 9-17h. Termékek: ..."
+            placeholder="e.g. Hours: Mon-Fri 9am-5pm. Products: ..."
           />
         </div>
 
@@ -85,7 +85,7 @@ export default function PortalSettings({ tenant, onUpdate }) {
           disabled={saving}
           className="bg-gray-900 text-white text-sm px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-40 transition-colors"
         >
-          {saving ? 'Mentés...' : saved ? 'Mentve!' : 'Mentés'}
+          {saving ? 'Saving…' : saved ? 'Saved!' : 'Save'}
         </button>
       </form>
     </div>

@@ -31,7 +31,7 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Név</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -46,18 +46,18 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
           onChange={(e) => setSlug(e.target.value)}
           required
           pattern="[a-z0-9-]+"
-          title="Csak kisbetű, szám és kötőjel"
+          title="Lowercase letters, digits, and hyphens only"
           disabled={!!initial.slug}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:bg-gray-50 disabled:text-gray-400"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Köszöntő szöveg</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Greeting</label>
         <textarea
           value={greeting}
           onChange={(e) => setGreeting(e.target.value)}
           rows={2}
-          placeholder="Pl. Üdvözlöm! Jancsó István AI-agentje vagyok."
+          placeholder="e.g. Hello! I'm István Jancsó's AI agent."
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
         />
       </div>
@@ -71,12 +71,12 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Tudásbázis</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Knowledge base</label>
         <textarea
           value={knowledgeBase}
           onChange={(e) => setKnowledgeBase(e.target.value)}
           rows={5}
-          placeholder="Az AI számára elérhető dokumentumok, információk..."
+          placeholder="Documents and information available to the AI…"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-y"
         />
       </div>
@@ -86,7 +86,7 @@ function TenantForm({ initial = {}, onSubmit, loading, error }) {
         disabled={loading}
         className="w-full bg-gray-900 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-40 transition-colors"
       >
-        {loading ? 'Mentés...' : 'Mentés'}
+        {loading ? 'Saving…' : 'Save'}
       </button>
     </form>
   )
@@ -143,7 +143,7 @@ export default function Tenants() {
   }
 
   async function handleDelete(tenant) {
-    if (!confirm(`Törlöd a "${tenant.name}" tenantot? Ez visszafordíthatatlan.`)) return
+    if (!confirm(`Delete tenant "${tenant.name}"? This cannot be undone.`)) return
     try {
       await api.deleteTenant(tenant.id)
       load()
@@ -152,31 +152,31 @@ export default function Tenants() {
     }
   }
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
   if (error) return <p className="text-sm text-red-500">{error}</p>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Tenantok</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Tenants</h1>
         <button
           onClick={() => { setFormError(''); setShowCreate(true) }}
           className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
         >
-          + Új tenant
+          + New tenant
         </button>
       </div>
 
       {tenants.length === 0 ? (
-        <p className="text-sm text-gray-400">Még nincsenek tenantok.</p>
+        <p className="text-sm text-gray-400">No tenants yet.</p>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-medium">Név</th>
+                <th className="text-left px-4 py-3 font-medium">Name</th>
                 <th className="text-left px-4 py-3 font-medium">Slug</th>
-                <th className="text-left px-4 py-3 font-medium">Létrehozva</th>
+                <th className="text-left px-4 py-3 font-medium">Created</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -188,20 +188,20 @@ export default function Tenants() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 font-mono">{t.slug}</td>
                   <td className="px-4 py-3 text-gray-400">
-                    {new Date(t.created_at).toLocaleDateString('hu')}
+                    {new Date(t.created_at).toLocaleDateString('en-US')}
                   </td>
                   <td className="px-4 py-3 text-right space-x-3">
                     <button
                       onClick={() => { setFormError(''); setEditTenant(t) }}
                       className="text-gray-400 hover:text-gray-700 text-xs"
                     >
-                      Szerkesztés
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDelete(t)}
                       className="text-red-400 hover:text-red-600 text-xs"
                     >
-                      Törlés
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -212,13 +212,13 @@ export default function Tenants() {
       )}
 
       {showCreate && (
-        <Modal title="Új tenant" onClose={() => setShowCreate(false)}>
+        <Modal title="New tenant" onClose={() => setShowCreate(false)}>
           <TenantForm onSubmit={handleCreate} loading={formLoading} error={formError} />
         </Modal>
       )}
 
       {editTenant && (
-        <Modal title="Tenant szerkesztése" onClose={() => setEditTenant(null)}>
+        <Modal title="Edit tenant" onClose={() => setEditTenant(null)}>
           <TenantForm
             initial={editTenant}
             onSubmit={handleUpdate}

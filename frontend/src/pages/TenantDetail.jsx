@@ -28,14 +28,14 @@ function ApiKeyBox({ apiKey }) {
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-xs font-medium text-blue-600 mb-0.5 uppercase tracking-wide">Tenant API kulcs</p>
+        <p className="text-xs font-medium text-blue-600 mb-0.5 uppercase tracking-wide">Tenant API key</p>
         <p className="text-sm font-mono text-blue-900 truncate">{apiKey}</p>
       </div>
       <button
         onClick={handleCopy}
         className="shrink-0 text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 transition-colors"
       >
-        {copied ? 'Másolva!' : 'Másolás'}
+        {copied ? 'Copied!' : 'Copy'}
       </button>
     </div>
   )
@@ -85,7 +85,7 @@ function PhoneNumbers({ tenantId }) {
   }
 
   async function handleDelete(phone) {
-    if (!confirm(`Törlöd a ${phone.phone_number} számot?`)) return
+    if (!confirm(`Delete number ${phone.phone_number}?`)) return
     try {
       await api.deletePhoneNumber(tenantId, phone.id)
       load()
@@ -94,7 +94,7 @@ function PhoneNumbers({ tenantId }) {
     }
   }
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
 
   return (
     <div className="space-y-4">
@@ -109,7 +109,7 @@ function PhoneNumbers({ tenantId }) {
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="Címke (opcionális)"
+          placeholder="Label (optional)"
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 flex-1"
         />
         <button
@@ -117,21 +117,21 @@ function PhoneNumbers({ tenantId }) {
           disabled={adding}
           className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-40 transition-colors whitespace-nowrap"
         >
-          + Hozzáadás
+          + Add
         </button>
       </form>
       {error && <p className="text-xs text-red-500">{error}</p>}
 
       {phones.length === 0 ? (
-        <p className="text-sm text-gray-400">Még nincs telefonszám.</p>
+        <p className="text-sm text-gray-400">No phone numbers yet.</p>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
-                <th className="text-left px-4 py-3 font-medium">Szám</th>
-                <th className="text-left px-4 py-3 font-medium">Címke</th>
-                <th className="text-left px-4 py-3 font-medium">Hozzáadva</th>
+                <th className="text-left px-4 py-3 font-medium">Number</th>
+                <th className="text-left px-4 py-3 font-medium">Label</th>
+                <th className="text-left px-4 py-3 font-medium">Added</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -141,14 +141,14 @@ function PhoneNumbers({ tenantId }) {
                   <td className="px-4 py-3 font-mono text-gray-900">{p.phone_number}</td>
                   <td className="px-4 py-3 text-gray-500">{p.label ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-400">
-                    {new Date(p.created_at).toLocaleDateString('hu')}
+                    {new Date(p.created_at).toLocaleDateString('en-US')}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => handleDelete(p)}
                       className="text-red-400 hover:text-red-600 text-xs"
                     >
-                      Törlés
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -169,20 +169,20 @@ function Calls({ tenantId }) {
     api.listCalls(tenantId).then(setCalls).finally(() => setLoading(false))
   }, [tenantId])
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
 
-  if (calls.length === 0) return <p className="text-sm text-gray-400">Még nem volt hívás.</p>
+  if (calls.length === 0) return <p className="text-sm text-gray-400">No calls yet.</p>
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
-            <th className="text-left px-4 py-3 font-medium">Hívó</th>
-            <th className="text-left px-4 py-3 font-medium">Hívott</th>
-            <th className="text-left px-4 py-3 font-medium">Státusz</th>
-            <th className="text-left px-4 py-3 font-medium">Időtartam</th>
-            <th className="text-left px-4 py-3 font-medium">Dátum</th>
+            <th className="text-left px-4 py-3 font-medium">Caller</th>
+            <th className="text-left px-4 py-3 font-medium">Called</th>
+            <th className="text-left px-4 py-3 font-medium">Status</th>
+            <th className="text-left px-4 py-3 font-medium">Duration</th>
+            <th className="text-left px-4 py-3 font-medium">Date</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>
@@ -192,20 +192,20 @@ function Calls({ tenantId }) {
               <td className="px-4 py-3 font-mono text-gray-700">{c.from_number ?? '—'}</td>
               <td className="px-4 py-3 font-mono text-gray-700">{c.to_number ?? '—'}</td>
               <td className="px-4 py-3">
-                <Badge color={callStatusColor(c.status)}>{c.status ?? 'ismeretlen'}</Badge>
+                <Badge color={callStatusColor(c.status)}>{c.status ?? 'unknown'}</Badge>
               </td>
               <td className="px-4 py-3 text-gray-500">
                 {c.duration_seconds != null ? `${c.duration_seconds}s` : '—'}
               </td>
               <td className="px-4 py-3 text-gray-400">
-                {new Date(c.created_at).toLocaleString('hu')}
+                {new Date(c.created_at).toLocaleString('en-US')}
               </td>
               <td className="px-4 py-3 text-right">
                 <Link
                   to={`/tenants/${tenantId}/calls/${c.id}`}
                   className="text-xs text-gray-400 hover:text-gray-700"
                 >
-                  Részletek
+                  Details
                 </Link>
               </td>
             </tr>
@@ -226,13 +226,13 @@ export default function TenantDetail() {
     api.getTenant(tenantId).then(setTenant).finally(() => setLoading(false))
   }, [tenantId])
 
-  if (loading) return <p className="text-sm text-gray-400">Betöltés...</p>
-  if (!tenant) return <p className="text-sm text-red-500">Tenant nem található.</p>
+  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
+  if (!tenant) return <p className="text-sm text-red-500">Tenant not found.</p>
 
   return (
     <div>
       <div className="mb-6">
-        <Link to="/" className="text-xs text-gray-400 hover:text-gray-700">← Tenantok</Link>
+        <Link to="/" className="text-xs text-gray-400 hover:text-gray-700">← Tenants</Link>
         <h1 className="text-xl font-semibold text-gray-900 mt-1">{tenant.name}</h1>
         <p className="text-sm text-gray-400 font-mono">{tenant.slug}</p>
       </div>
@@ -257,7 +257,7 @@ export default function TenantDetail() {
                 : 'border-transparent text-gray-400 hover:text-gray-700'
             }`}
           >
-            {t === 'calls' ? 'Hívások' : 'Telefonszámok'}
+            {t === 'calls' ? 'Calls' : 'Phone numbers'}
           </button>
         ))}
       </div>
