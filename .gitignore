@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+api_keys.txt
 
 # Python
 __pycache__/
