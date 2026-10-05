@@ -42,8 +42,10 @@ async def get_me(tenant: Auth) -> Tenant:
 
 @router.patch("/me", response_model=TenantOut)
 async def update_me(body: TenantUpdate, tenant: Auth, db: DB) -> Tenant:
-    if body.system_prompt is not None:
-        tenant.system_prompt = body.system_prompt
+    editable = {"system_prompt", "greeting", "knowledge_base"}
+    for field, value in body.model_dump(exclude_unset=True).items():
+        if field in editable:
+            setattr(tenant, field, value)
     await db.commit()
     await db.refresh(tenant)
     return tenant
