@@ -1,18 +1,34 @@
-import base64
+"""Text-to-speech via ElevenLabs streaming API.
+
+Preserves the public interface (`tts_token`, `get_audio`) so callers do not change.
+Audio bytes are buffered in-process and served by `/telnyx/audio/{token}`.
+"""
 import hashlib
 import logging
 import secrets
+import time
 from typing import Optional
 
 import httpx
 
 logger = logging.getLogger(__name__)
 
-TTS_LANGUAGE = "hu-HU"
-TTS_VOICE = "hu-HU-Wavenet-A"
+MODEL_ID = "eleven_turbo_v2_5"
+VOICE_ID = "21m00Tcm4TlvDq8ikWAM"  # Rachel (ElevenLabs default demo voice)
+OUTPUT_FORMAT = "mp3_44100_128"
+TIMEOUT_S = 15.0
 
 _audio_store: dict[str, bytes] = {}
 _text_cache: dict[str, str] = {}
+
+_client: Optional[httpx.AsyncClient] = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None:
+        _client = httpx.AsyncClient(timeout=TIMEOUT_S)
+    return _client
 
 
 async def tts_token(text: str) -> str:
@@ -33,16 +49,32 @@ def get_audio(token: str) -> Optional[bytes]:
 
 async def _generate_audio(text: str) -> bytes:
     from config import settings
-    payload = {
-        "input": {"text": text},
-        "voice": {"languageCode": TTS_LANGUAGE, "name": TTS_VOICE},
-        "audioConfig": {"audioEncoding": "MP3"},
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}/stream"
+    headers = {
+        "xi-api-key": settings.elevenlabs_api_key,
+        "Accept": "audio/mpeg",
     }
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.post(
-            "https://texttospeech.googleapis.com/v1/text:synthesize",
-            json=payload,
-            params={"key": settings.google_api_key},
-        )
-        response.raise_for_status()
-    return base64.b64decode(response.json()["audioContent"])
+    payload = {"text": text, "model_id": MODEL_ID}
+    params = {"output_format": OUTPUT_FORMAT}
+
+    client = _get_client()
+    t0 = time.monotonic()
+    chunks: list[bytes] = []
+    first_byte_at: Optional[float] = None
+
+    async with client.stream("POST", url, headers=headers, json=payload, params=params) as r:
+        r.raise_for_status()
+        async for chunk in r.aiter_bytes():
+            if first_byte_at is None:
+                first_byte_at = time.monotonic()
+            chunks.append(chunk)
+
+    total_ms = int((time.monotonic() - t0) * 1000)
+    ttfb_ms = int((first_byte_at - t0) * 1000) if first_byte_at else -1
+    total_bytes = sum(len(c) for c in chunks)
+    logger.info(
+        "ElevenLabs TTS | ttfb=%dms | total=%dms | bytes=%d | text_len=%d",
+        ttfb_ms, total_ms, total_bytes, len(text),
+    )
+    return b"".join(chunks)
