@@ -33,7 +33,7 @@ def verify_telnyx_signature(
 def _gather(action: str) -> str:
     return (
         f'<Gather input="speech" action="{action}" method="POST" '
-        f'language="hu-HU" speechTimeout="2" timeout="10" speechModel="telephony"/>'
+        f'language="en-US" speechTimeout="2" timeout="10" speechModel="telephony"/>'
     )
 
 
@@ -49,7 +49,7 @@ def _twiml(audio_url: str, gather_action: str) -> str:
     )
 
 
-DEFAULT_GREETING = "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?"
+DEFAULT_GREETING = "Welcome to AI Infoline! How can we help you?"
 
 
 async def build_greeting_twiml(gather_action: str, base_url: str, greeting: str | None = None) -> str:
@@ -60,7 +60,7 @@ async def build_greeting_twiml(gather_action: str, base_url: str, greeting: str 
 
 async def build_no_input_twiml(gather_action: str, base_url: str) -> str:
     from services.tts_service import tts_token
-    token = await tts_token("Sajnálom, nem hallottam. Kérem, mondja el kérdését!")
+    token = await tts_token("Sorry, I didn't catch that. Please tell me your question.")
     return _twiml(f"{base_url}/telnyx/audio/{token}", gather_action)
 
 

@@ -90,7 +90,7 @@ async def _on_answered(ccid: str):
         session["tenant_id"] = tenant.id
 
     greeting = (tenant.greeting if tenant else None) or \
-        "Üdvözöljük az AI Infoline szolgáltatásban! Miben segíthetünk?"
+        "Welcome to AI Infoline! How can we help you?"
 
     token = await tts_token(greeting)
     await play_audio(ccid, f"{BASE_URL}/telnyx/audio/{token}", client_state="greeting")
@@ -122,8 +122,9 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
 
     dg_url = (
         "wss://api.deepgram.com/v1/listen"
-        "?model=nova-3&language=hu&encoding=mulaw&sample_rate=8000"
-        "&channels=1&endpointing=500&interim_results=false&smart_format=true"
+        "?model=nova-3&language=en&encoding=mulaw&sample_rate=8000"
+        "&channels=1&endpointing=500&interim_results=true"
+        "&utterance_end_ms=1500&smart_format=true"
     )
 
     transcript: Optional[str] = None
@@ -138,14 +139,23 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
 
             async def _recv_dg():
                 nonlocal transcript, stt_done_at
+                fragments: list[str] = []
                 async for raw in dg_ws:
                     data = json.loads(raw)
+                    if data.get("type") == "UtteranceEnd":
+                        if fragments:
+                            transcript = " ".join(fragments).strip()
+                            stt_done_at = time.monotonic()
+                            return
+                        continue
                     alts = data.get("channel", {}).get("alternatives", [{}])
                     text = alts[0].get("transcript", "") if alts else ""
                     if data.get("is_final") and text:
-                        transcript = text
-                        stt_done_at = time.monotonic()
-                        return
+                        fragments.append(text)
+                        if data.get("speech_final"):
+                            transcript = " ".join(fragments).strip()
+                            stt_done_at = time.monotonic()
+                            return
 
             dg_task = asyncio.create_task(_recv_dg())
 
@@ -192,7 +202,7 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
 async def _play_no_input(ccid: str):
     from services.callcontrol_service import play_audio
     from services.tts_service import tts_token
-    token = await tts_token("Sajnálom, nem hallottam. Kérem, mondja el kérdését!")
+    token = await tts_token("Sorry, I didn't catch that. Please tell me your question.")
     await play_audio(ccid, f"{BASE_URL}/telnyx/audio/{token}", client_state="no_input")
 
 
@@ -210,11 +220,12 @@ async def _respond(ccid: str, user_input: str, stt_done_at: Optional[float] = No
         return
 
     t0 = time.monotonic()
-    # Deepgram endpointing hold is 500ms; approximate speech_end_detected as stt_done - 0.5s
-    DG_ENDPOINTING_S = 0.5
-    speech_end_at = (stt_done_at - DG_ENDPOINTING_S) if stt_done_at else t0
+    # Close signal is either speech_final (after endpointing=500ms silence) or
+    # UtteranceEnd (after utterance_end_ms=1500ms silence). Approximate at 1.0s.
+    DG_CLOSE_HOLD_S = 1.0
+    speech_end_at = (stt_done_at - DG_CLOSE_HOLD_S) if stt_done_at else t0
     timer = new_timer(
-        ccid, t0=speech_end_at, t0_label="speech_end_detected (estimated, DG endpointing=500ms)"
+        ccid, t0=speech_end_at, t0_label="speech_end_detected (estimated, DG close hold~1000ms)"
     )
     timer.mark("stt_done", f"len={len(user_input)}")
 

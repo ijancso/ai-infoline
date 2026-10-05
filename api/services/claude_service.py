@@ -15,15 +15,15 @@ _client: Optional[anthropic.AsyncAnthropic] = None
 # Per-call conversation history cache: call_sid -> list of messages
 _sessions: dict[str, list[dict]] = {}
 
-SYSTEM_PROMPT = """Te egy AI-alapú telefonos infoline asszisztens vagy.
-Feladatod: segíteni a hívóknak tömör, barátságos és pontos válaszokkal.
+SYSTEM_PROMPT = """You are an AI-powered phone infoline assistant.
+Your task: help callers with concise, friendly, and accurate answers.
 
-Irányelvek:
-- Mindig magyarul válaszolj.
-- A hívó magyarul beszél. A hangfelismerő magyar (hu-HU) modellt használ, de az átírásban lehetnek kisebb hibák – értelmezd a legjobb tudásod szerint.
-- Írj PONTOSAN KÉT RÖVID mondatot: az első adja a közvetlen választ (max 8 szó), a második egészíti ki (max 10 szó).
-- Legyen a válaszod természetes – ezt szövegfelolvasó (TTS) hangosítja fel.
-- Kerüld a felsorolásokat, emojit, csillagokat és egyéb formázást."""
+Guidelines:
+- Always reply in English.
+- The caller speaks English. The speech recognizer uses an English (en-US) model, but transcriptions may contain minor errors — interpret them to the best of your ability.
+- Write EXACTLY TWO SHORT sentences: the first gives the direct answer (max 8 words), the second adds context (max 10 words).
+- Keep your reply natural — it will be spoken by a text-to-speech engine.
+- Avoid lists, emojis, asterisks, or any other formatting."""
 
 
 def _first_sentence(text: str) -> str:
@@ -75,7 +75,7 @@ def _build_prompt(system_prompt: Optional[str], knowledge_base: Optional[str]) -
     if system_prompt:
         parts.append(system_prompt)
     if knowledge_base:
-        parts.append(f"## Tudásbázis\n\n{knowledge_base}")
+        parts.append(f"## Knowledge base\n\n{knowledge_base}")
     return "\n\n".join(parts)
 
 
@@ -119,7 +119,7 @@ async def get_ai_reply(
 
         full_reply = next(
             (block.text for block in response.content if block.type == "text"),
-            "Sajnálom, nem tudtam választ generálni.",
+            "Sorry, I couldn't generate a response.",
         )
         reply = _first_sentence(full_reply)
 
@@ -141,7 +141,7 @@ async def get_ai_reply(
 
     except anthropic.APIError as exc:
         logger.error("Claude API hiba | call_sid=%s | %s", call_sid, exc)
-        return "Technikai hiba történt. Kérem, próbálja újra."
+        return "A technical error occurred. Please try again."
 
 
 async def get_streaming_tts_token(
@@ -207,7 +207,7 @@ async def get_streaming_tts_token(
                     break  # cancel remaining Claude stream
 
         if first_sentence is None:
-            first_sentence = buffer.strip() or "Sajnálom, nem tudtam válaszolni."
+            first_sentence = buffer.strip() or "Sorry, I couldn't answer."
             if first_sentence[-1] not in '.!?':
                 first_sentence += '.'
             if timer is not None:
@@ -234,5 +234,5 @@ async def get_streaming_tts_token(
 
     except anthropic.APIError as exc:
         logger.error("Claude stream hiba | call_sid=%s | %s", call_sid, exc)
-        fallback = "Technikai hiba történt. Kérem, próbálja újra."
+        fallback = "A technical error occurred. Please try again."
         return await tts_token(fallback), fallback

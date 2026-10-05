@@ -34,7 +34,7 @@ async def _transcribe(audio_bytes: bytes, api_key: str) -> Optional[str]:
     async with httpx.AsyncClient(timeout=15) as client:
         try:
             response = await client.post(
-                "https://api.deepgram.com/v1/listen?model=nova-2&language=hu&smart_format=true",
+                "https://api.deepgram.com/v1/listen?model=nova-2&language=en&smart_format=true",
                 headers={
                     "Authorization": f"Token {api_key}",
                     "Content-Type": "audio/wav",
