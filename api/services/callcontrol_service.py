@@ -52,6 +52,10 @@ async def start_streaming(ccid: str, stream_url: str) -> bool:
     })
 
 
+async def record_start(ccid: str, channels: str = "dual", fmt: str = "wav") -> bool:
+    return await _post(ccid, "record_start", {"format": fmt, "channels": channels})
+
+
 async def stop_streaming(ccid: str) -> bool:
     return await _post(ccid, "streaming_stop")
 

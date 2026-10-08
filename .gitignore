@@ -61,3 +61,7 @@ screenshot*.jpg
 history.txt
 input.txt
 output.txt
+
+# Call recordings (dual-channel wav, test calls only)
+recordings/
+docs/latency-post/questions/

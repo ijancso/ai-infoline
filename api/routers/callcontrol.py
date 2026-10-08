@@ -2,10 +2,12 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import secrets
 import time
 from typing import Optional
 
+import httpx
 import websockets
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
@@ -66,13 +68,17 @@ async def call_events(request: Request):
             clear_session(ccid)
         logger.info("Call ended | ccid=%.24s", ccid)
 
+    elif event_type == "call.recording.saved":
+        asyncio.create_task(_safe(_on_recording_saved(ccid, payload), "recording_saved", ccid))
+
     return JSONResponse({"status": "ok"})
 
 
 async def _on_answered(ccid: str):
     logger.info("_on_answered start | ccid=%.24s", ccid)
+    from config import settings
     from db import AsyncSessionLocal
-    from services.callcontrol_service import play_audio
+    from services.callcontrol_service import play_audio, record_start
     from services.tenant_service import get_tenant_by_phone
     from services.tts_service import tts_token
 
@@ -80,6 +86,9 @@ async def _on_answered(ccid: str):
     if not session:
         logger.warning("_on_answered: no session for ccid=%.24s", ccid)
         return
+
+    if settings.record_calls:
+        asyncio.create_task(_safe(record_start(ccid), "record_start", ccid))
 
     async with AsyncSessionLocal() as db:
         tenant = await get_tenant_by_phone(db, session.get("to")) if session.get("to") else None
@@ -197,6 +206,30 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
         )
     else:
         asyncio.create_task(_safe(_play_no_input(ccid), "play_no_input", ccid))
+
+
+async def _on_recording_saved(ccid: str, payload: dict):
+    """Download dual-channel wav for latency gap measurement (step A of latency-post)."""
+    from config import settings
+
+    urls = payload.get("recording_urls") or {}
+    url = urls.get("wav") or urls.get("mp3")
+    if not url:
+        logger.warning("recording.saved without url | ccid=%.24s | payload keys=%s", ccid, list(payload.keys()))
+        return
+
+    ext = "wav" if urls.get("wav") else "mp3"
+    rec_id = payload.get("recording_id") or secrets.token_hex(6)
+    os.makedirs(settings.recordings_dir, exist_ok=True)
+    path = os.path.join(settings.recordings_dir, f"{ccid[:24]}_{rec_id}.{ext}")
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        r = await client.get(url)
+        r.raise_for_status()
+        with open(path, "wb") as f:
+            f.write(r.content)
+
+    logger.info("Recording saved | ccid=%.24s | path=%s | bytes=%d", ccid, path, len(r.content))
 
 
 async def _play_no_input(ccid: str):

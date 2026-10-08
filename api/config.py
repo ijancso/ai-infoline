@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     do_spaces_endpoint: str
     do_spaces_bucket: str
     admin_api_key: str
+    record_calls: bool = False
+    recordings_dir: str = "/app/recordings"
 
     class Config:
         env_file = ".env"
