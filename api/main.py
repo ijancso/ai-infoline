@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers.admin import router as admin_router
 from routers.callcontrol import router as callcontrol_router
+from routers.callcontrol_caller import router as callcontrol_caller_router
 from routers.portal import router as portal_router
 from routers.telnyx_webhook import router as telnyx_router
 
@@ -65,6 +66,7 @@ app.add_middleware(
 
 app.include_router(admin_router)
 app.include_router(callcontrol_router)
+app.include_router(callcontrol_caller_router)
 app.include_router(portal_router)
 app.include_router(telnyx_router)
 
