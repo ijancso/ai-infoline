@@ -24,7 +24,7 @@ router = APIRouter(prefix="/callcontrol/caller", tags=["callcontrol_caller"])
 BASE_URL = "https://infoline.dev"
 QUESTIONS_DIR = os.environ.get("LATENCY_QUESTIONS_DIR", "/app/questions")
 
-GREETING_WAIT_S = 6.0  # time to let the AI's greeting play before question 1
+GREETING_WAIT_S = 8.0  # time to let the AI's greeting play before question 1
 REPLY_WAIT_S = 10.0    # max time to let the AI reply before next question
 NUM_QUESTIONS = 3
 
