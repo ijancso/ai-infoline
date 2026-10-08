@@ -36,7 +36,14 @@ import httpx
 
 
 HARD_MAX_CALLS = 20
-EST_COST_PER_CALL_USD = 0.015  # ~1 minute outbound US; adjust if you move to EU
+# Telnyx HU pricing (verified by user 2026-10-08, 60/60 billing i.e. per-minute rounding):
+#   outbound HU->HU Fixed: 0.009, Mobile: 0.015, NGN: 0.03 USD/min
+#   inbound HU: 0.006 USD/min
+# AI test number +36-1-211-4244 is Budapest landline (area code "1") -> Fixed.
+# Per call we pay BOTH legs on Telnyx: outbound (caller) + inbound (AI).
+# At 2 billed minutes/call: (0.009 + 0.006) * 2 = 0.030 USD/call.
+# Safe upper bound for non-Fixed destinations (Mobile/NGN) is ~0.08 USD/call.
+EST_COST_PER_CALL_USD = 0.03
 
 
 def _env(name: str) -> str:
@@ -70,7 +77,7 @@ def main() -> int:
     print(f"About to place {args.count} test call(s):")
     print(f"  from: {from_num}  ->  to: {to_num}")
     print(f"  pause between calls: {args.pause}s")
-    print(f"  estimated cost: ~${est:.2f} ({EST_COST_PER_CALL_USD}/min x ~1 min x {args.count})")
+    print(f"  estimated cost: ~${est:.2f} (${EST_COST_PER_CALL_USD:.3f}/call x {args.count}, HU Fixed, 2 billed min/call)")
     if not args.yes:
         ans = input("Proceed? [y/N] ").strip().lower()
         if ans != "y":
