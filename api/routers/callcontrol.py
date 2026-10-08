@@ -165,6 +165,11 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
             dg_task = asyncio.create_task(_recv_dg())
             frames_in = 0
             bytes_in = 0
+            dump_fh = None
+            if os.environ.get("DG_DUMP_DIR"):
+                dump_path = os.path.join(os.environ["DG_DUMP_DIR"], f"{ccid[:24]}.mulaw")
+                dump_fh = open(dump_path, "wb")
+                logger.info("DG forward: dumping to %s", dump_path)
 
             try:
                 while transcript is None:
@@ -176,15 +181,20 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
                     if msg.get("event") == "media":
                         audio = base64.b64decode(msg["media"]["payload"])
                         await dg_ws.send(audio)
+                        if dump_fh:
+                            dump_fh.write(audio)
                         frames_in += 1
                         bytes_in += len(audio)
                         if frames_in in (1, 50, 250, 500, 1000):
-                            logger.info("DG forward | ccid=%.24s | frames=%d bytes=%d", ccid, frames_in, bytes_in)
+                            logger.info("DG forward | ccid=%.24s | frames=%d bytes=%d | first8=%s",
+                                        ccid, frames_in, bytes_in, audio[:8].hex() if frames_in == 1 else "-")
                     elif msg.get("event") == "stop":
                         break
             except (WebSocketDisconnect, Exception) as e:
                 logger.debug("Telnyx stream closed: %s", e)
             logger.info("DG forward total | ccid=%.24s | frames=%d bytes=%d", ccid, frames_in, bytes_in)
+            if dump_fh:
+                dump_fh.close()
 
             dg_task.cancel()
             try:
