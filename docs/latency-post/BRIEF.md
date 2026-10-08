@@ -12,6 +12,7 @@ Hand-off loop: CLI works from this file → commits + pushes → the chat pulls 
 ## Hard rules for the CLI
 
 - One optimization = one commit, prefix `perf(latency): <fix>`. Put the before/after median in the commit body.
+- **Push after every commit** (and push WIP to a branch if stopping mid-step) — István follows progress and asks questions from the mobile chat, which only sees pushed code.
 - Measure before AND after each fix with the same protocol (below). If a fix doesn't help, keep the commit + measurement anyway (or revert with a commit) — a "didn't work" row makes the article credible.
 - Never commit secrets, `.env`, caller phone numbers or transcripts with personal data.
 - `LATENCY_CASE_STUDY.md`, `DEV_JOURNEY.md`, `ELEVENLABS_INTEGRATION.md` are gitignored (interview prep). Use them as input if useful, but anything the article cites must live in tracked files under `docs/latency-post/`.
@@ -40,7 +41,7 @@ Hand-off loop: CLI works from this file → commits + pushes → the chat pulls 
 - Add a parser script `docs/latency-post/parse_latency.py`: LATENCY log lines → `results.csv`.
 - `results.csv` columns: `run_id, commit, date, source(emulator|call), turn, stage, delta_ms, total_ms`.
 - Stages (already emitted): `speech_end_detected, stt_done, db_ready, llm_request_sent, llm_first_token, llm_done, tts_first_audio, audio_sent`.
-- Also note the perceived end-to-end (stopwatch from end of speech to first audio heard) for 3 calls — the server can't see Telnyx's playback buffer.
+- **Perceived end-to-end (what the caller actually hears):** István records the calls (speaker + second device, or call recording). Measure in the waveform (e.g. Audacity) from end of his speech to first audio of the reply, per turn. Store as `source=recording` rows in `results.csv` with stage `perceived_total`. This is the only way to see Telnyx's playback buffer, and it is the headline number for the post. The server-side `total_ms` explains *where* the time goes; the recording proves *how much* the caller waits.
 
 ## Work plan (in order; from LATENCY_REPORT.md §3, updated)
 
