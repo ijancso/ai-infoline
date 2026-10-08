@@ -133,7 +133,7 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
         "wss://api.deepgram.com/v1/listen"
         "?model=nova-3&language=en&encoding=mulaw&sample_rate=8000"
         "&channels=1&endpointing=500&interim_results=true"
-        "&utterance_end_ms=1500&smart_format=true"
+        "&utterance_end_ms=1000&smart_format=true"
     )
 
     transcript: Optional[str] = None
@@ -161,10 +161,6 @@ async def stream_ws(websocket: WebSocket, stream_id: str):
                     text = alts[0].get("transcript", "") if alts else ""
                     if data.get("is_final") and text:
                         fragments.append(text)
-                        if data.get("speech_final"):
-                            transcript = " ".join(fragments).strip()
-                            stt_done_at = time.monotonic()
-                            return
 
             dg_task = asyncio.create_task(_recv_dg())
 
@@ -253,8 +249,7 @@ async def _respond(ccid: str, user_input: str, stt_done_at: Optional[float] = No
         return
 
     t0 = time.monotonic()
-    # Close signal is either speech_final (after endpointing=500ms silence) or
-    # UtteranceEnd (after utterance_end_ms=1500ms silence). Approximate at 1.0s.
+    # Recv loop only closes on UtteranceEnd (utterance_end_ms=1000ms silence; DG minimum).
     DG_CLOSE_HOLD_S = 1.0
     speech_end_at = (stt_done_at - DG_CLOSE_HOLD_S) if stt_done_at else t0
     timer = new_timer(
