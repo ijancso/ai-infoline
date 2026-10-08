@@ -36,12 +36,30 @@ Hand-off loop: CLI works from this file → commits + pushes → the chat pulls 
 ## Measurement protocol
 
 - **Emulator (middle of pipeline):** on the droplet, `LATENCY_DEBUG=1 python3 call_emulator.py --no-audio` with a fixed set of ≥10 prompts (store them in `docs/latency-post/prompts.txt`), 2 rounds. Report median and p90.
-- **Real calls (full turn):** ≥5 calls × 3 turns, same scripted questions. Collect with
+- **Real calls (full turn):** ≥5 calls × 3 turns, same scripted questions, placed by the automated caller (step B below). Collect server stages with
   `docker compose -f docker-compose.prod.yml logs --since 15m api | grep LATENCY`.
 - Add a parser script `docs/latency-post/parse_latency.py`: LATENCY log lines → `results.csv`.
 - `results.csv` columns: `run_id, commit, date, source(emulator|call), turn, stage, delta_ms, total_ms`.
 - Stages (already emitted): `speech_end_detected, stt_done, db_ready, llm_request_sent, llm_first_token, llm_done, tts_first_audio, audio_sent`.
-- **Perceived end-to-end (what the caller actually hears):** István records the calls (speaker + second device, or call recording). Measure in the waveform (e.g. Audacity) from end of his speech to first audio of the reply, per turn. Store as `source=recording` rows in `results.csv` with stage `perceived_total`. This is the only way to see Telnyx's playback buffer, and it is the headline number for the post. The server-side `total_ms` explains *where* the time goes; the recording proves *how much* the caller waits.
+- **Perceived end-to-end (what the caller actually hears):** measured automatically from dual-channel call recordings (step A). Store as `source=recording` rows in `results.csv` with stage `perceived_total`. This is the only way to see Telnyx's playback buffer, and it is the headline number for the post. The server-side `total_ms` explains *where* the time goes; the recording proves *how much* the caller waits.
+
+## Measurement tooling (do this BEFORE step 0)
+
+### A. Dual-channel call recording + automatic gap measurement
+- Behind a new env flag `RECORD_CALLS=1` (default off): on `call.answered`, send Telnyx Call Control `record_start` with `channels: "dual"`, `format: "wav"`. Verify parameter names against the current Telnyx docs.
+- Handle the `call.recording.saved` webhook: download the file (reuse a shared httpx client) to `recordings/` on the droplet. Add `recordings/` to `.gitignore` — recordings never go into git.
+- `docs/latency-post/measure_gaps.py`: per channel, detect speech segments (RMS threshold or `webrtcvad`), then for each caller-utterance end → next AI-audio start, output the gap. Write `source=recording, stage=perceived_total` rows to `results.csv`.
+- Check which channel is caller vs. AI on the first recording. István will spot-check one recording by ear/Audacity to validate the script before trusting it.
+- Note for the article: the recording is taken inside Telnyx, so the last mobile-network hop (~100–200 ms) is not included. Fine for before/after comparison.
+- Privacy: only for test calls. Never enable `RECORD_CALLS` for real customer traffic without a consent notice in the greeting.
+
+### B. Automated test caller
+- `docs/latency-post/auto_caller.py`: places an outbound call via Telnyx Call Control from a second number / separate Call Control connection (its own webhook path, so it never hits the AI handler) to the test number.
+- Caller script: wait for the greeting to finish, play question 1, wait for the AI reply to finish (silence detection on the received audio, or a fixed max wait), play question 2, and so on. 3 questions per call.
+- Question audio: generate the 3 Hungarian questions once with TTS into `docs/latency-post/questions/*.wav` (8 kHz mono). Same audio every run → clean before/after comparison. István may later replace them with his own recorded voice; run one human-voice round at the end as a sanity check (TTS speech endpoints more cleanly than a real person).
+- Prefer recording on the auto-caller's own leg as well (dual): that is closest to what a caller hears.
+- Guardrails: only ever dial the configured test number; max 20 calls per run; sequential calls with a pause; print the estimated cost. **Ask István before the first run** (needs the second number set up in Telnyx — tell him exactly what to configure).
+- Once A + B work, the CLI runs the 5 calls × 3 turns itself after every fix — no manual calls needed.
 
 ## Work plan (in order; from LATENCY_REPORT.md §3, updated)
 
