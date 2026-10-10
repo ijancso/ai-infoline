@@ -29,10 +29,10 @@ function AdminApp() {
   return (
     <Layout onLogout={handleLogout}>
       <Routes>
-        <Route path="/" element={<Tenants />} />
-        <Route path="/tenants/:tenantId" element={<TenantDetail />} />
-        <Route path="/tenants/:tenantId/calls/:callId" element={<CallDetail />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/login" element={<Tenants />} />
+        <Route path="/login/tenants/:tenantId" element={<TenantDetail />} />
+        <Route path="/login/tenants/:tenantId/calls/:callId" element={<CallDetail />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Layout>
   )

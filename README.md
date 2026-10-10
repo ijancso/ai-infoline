@@ -191,7 +191,7 @@ docker compose up --build
 ```
 
 - API: http://localhost:8001 (OpenAPI docs at `/docs`)
-- Portals: http://localhost
+- Landing page: http://localhost · admin: http://localhost/login · tenant portal: http://localhost/portal
 - Telephony needs a public HTTPS host: point a Telnyx Call Control application's webhook at `https://<host>/callcontrol/events`.
 
 Production runs `docker-compose.prod.yml` behind Nginx with Let's Encrypt certificates. Terraform (`terraform/`) provisions a DigitalOcean managed PostgreSQL cluster and a Spaces bucket; the droplet itself is not Terraform-managed yet.

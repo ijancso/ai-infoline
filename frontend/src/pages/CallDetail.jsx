@@ -130,7 +130,7 @@ export default function CallDetail() {
   return (
     <div>
       <div className="mb-6">
-        <Link to={`/tenants/${tenantId}`} className="text-xs text-gray-400 hover:text-gray-700">
+        <Link to={`/login/tenants/${tenantId}`} className="text-xs text-gray-400 hover:text-gray-700">
           ← Back to tenant
         </Link>
         <h1 className="text-xl font-semibold text-gray-900 mt-1">Call details</h1>

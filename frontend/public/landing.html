@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Infoline — AI phone assistant</title>
+<meta name="description" content="AI Infoline answers your business calls with AI: it responds to questions, books appointments, takes messages and sends a summary of every call — day and night, in English and Hungarian.">
+<meta property="og:title" content="AI Infoline — AI phone assistant">
+<meta property="og:description" content="The AI receptionist that answers every call. Launching soon.">
+<meta property="og:url" content="https://infoline.dev/">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23e8452c'/%3E%3Cg fill='white'%3E%3Crect x='8' y='13' width='2.6' height='6' rx='1.3'/%3E%3Crect x='12.5' y='9' width='2.6' height='14' rx='1.3'/%3E%3Crect x='17' y='11' width='2.6' height='10' rx='1.3'/%3E%3Crect x='21.4' y='14' width='2.6' height='4' rx='1.3'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1b2a; --ink:#14213d; --text:#3d4757; --muted:#6b7686;
+  --bg:#ffffff; --soft:#f4f6f9; --soft2:#eef1f6; --line:#e3e7ee;
+  --accent:#e8452c; --accent-d:#c9361f; --accent-t:#fdece8;
+  --teal:#10a99b; --teal-t:#e3f6f4;
+  --r:16px; --shadow:0 18px 50px -18px rgba(13,27,42,.28);
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+img,svg{display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{color:var(--ink);line-height:1.15;margin:0;letter-spacing:-.02em}
+p{margin:0}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+section{padding:96px 0}
+.center{text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-t);padding:6px 12px;border-radius:999px}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.6s infinite}
+.h2{font-size:clamp(28px,3.6vw,40px);font-weight:800}
+.sub{font-size:18px;color:var(--muted);max-width:640px;margin:14px auto 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 15px var(--font);padding:13px 22px;border-radius:10px;border:1.5px solid transparent;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px -8px rgba(232,69,44,.6)}
+.btn-primary:hover{background:var(--accent-d);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line);color:var(--ink);background:#fff}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{padding:9px 16px;font-size:14px}
+
+/* Banner + nav */
+.banner{background:var(--navy);color:#dfe6ef;font-size:14px;text-align:center;padding:9px 16px}
+.banner b{color:#fff}
+.banner a{color:#ff9a86;font-weight:600;margin-left:6px}
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--ink)}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center}
+.links{display:flex;gap:28px;font-size:15px;font-weight:500}
+.links a:hover{color:var(--accent)}
+.nav-r{display:flex;align-items:center;gap:12px}
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px;font-weight:600}
+.lang button{border:0;background:#fff;padding:6px 10px;cursor:pointer;color:var(--muted);font:inherit}
+.lang button.on{background:var(--ink);color:#fff}
+.login{font-size:14px;font-weight:600;color:var(--ink)}
+.login:hover{color:var(--accent)}
+
+/* Hero */
+.hero{padding:72px 0 88px;background:radial-gradient(900px 500px at 85% 10%,#fff1ed 0%,transparent 60%),radial-gradient(700px 500px at 0% 100%,#eaf7f5 0%,transparent 60%)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(36px,5.2vw,60px);font-weight:800;margin:20px 0 20px}
+.hl{color:var(--accent);position:relative;white-space:nowrap}
+.hl::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.18em;background:var(--accent);opacity:.18;border-radius:4px}
+.lead{font-size:18px;max-width:560px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.cd{margin-top:34px}
+.cd-label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.cd-boxes{display:flex;gap:10px}
+.cd-box{background:#fff;border:1px solid var(--line);border-radius:12px;min-width:72px;padding:10px 8px;text-align:center;box-shadow:0 6px 16px -10px rgba(13,27,42,.25)}
+.cd-box b{display:block;font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+.cd-box span{font-size:12px;color:var(--muted)}
+
+/* Hero visual */
+.visual{position:relative;max-width:440px;margin-left:auto;width:100%}
+.call{background:#fff;border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--line);padding:20px;position:relative;z-index:2}
+.call-top{display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--teal-t);display:grid;place-items:center;position:relative}
+.avatar::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--teal);opacity:0;animation:ring 2s infinite}
+.call-meta{flex:1;min-width:0}
+.call-meta b{display:block;color:var(--ink);font-size:15px}
+.call-meta span{font-size:13px;color:var(--muted)}
+.live{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--teal);background:var(--teal-t);padding:4px 10px;border-radius:999px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:blink 1.2s infinite}
+.timer{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:8px}
+.wave{display:flex;align-items:center;justify-content:center;gap:3px;height:46px;margin:16px 0 6px;padding:0 6px;background:var(--soft);border-radius:12px}
+.wave span{width:3px;height:100%;border-radius:3px;background:linear-gradient(var(--accent),var(--teal));transform:scaleY(.2);animation:wave 1s ease-in-out infinite alternate}
+.chat{display:flex;flex-direction:column;gap:10px;margin-top:14px;min-height:248px}
+.msg{max-width:84%;font-size:14px;line-height:1.45;padding:10px 13px;border-radius:14px;opacity:0;transform:translateY(8px)}
+.msg.in{background:var(--soft2);color:var(--ink);border-bottom-left-radius:4px;align-self:flex-start}
+.msg.ai{background:var(--accent);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.msg.ai small{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;opacity:.8;margin-bottom:2px}
+.chat.play .msg{animation:pop .45s ease forwards;animation-delay:var(--d)}
+.chip{position:absolute;z-index:3;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);font-size:13px;display:flex;align-items:center;gap:10px;padding:10px 14px;animation:float 5s ease-in-out infinite}
+.chip b{color:var(--ink);display:block}
+.chip .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+.chip-night{top:-52px;left:-44px}
+.chip-sum{bottom:-30px;right:-34px;animation-delay:-2.5s}
+.chip-sum span{color:var(--muted);font-size:12px}
+
+/* Industries */
+.inds{padding:34px 0;border-bottom:1px solid var(--line)}
+.inds-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 30px;color:var(--muted);font-weight:600;font-size:15px}
+.inds-row .t{color:var(--ink);font-weight:600;margin-right:6px}
+.ind{display:flex;align-items:center;gap:8px}
+.ind svg{color:var(--accent)}
+
+/* Features */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:28px;transition:.25s}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:transparent}
+.f-ic{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--accent-t);color:var(--accent);margin-bottom:18px}
+.card:nth-child(even) .f-ic{background:var(--teal-t);color:var(--teal)}
+.card h3{font-size:18px;margin-bottom:8px}
+.card p{font-size:15px;color:var(--muted)}
+
+/* Flow */
+.flow-sec{background:var(--soft)}
+.flow{display:flex;align-items:stretch;justify-content:center;margin-top:56px}
+.node{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;text-align:center;width:200px;flex:none;box-shadow:0 10px 30px -18px rgba(13,27,42,.35)}
+.node .n-ic{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:var(--soft2);color:var(--ink)}
+.node b{display:block;color:var(--ink);font-size:16px}
+.node span{font-size:13px;color:var(--muted)}
+.node.core{background:var(--navy);border-color:var(--navy);width:240px;position:relative}
+.node.core b{color:#fff}
+.node.core .n-ic{background:var(--accent);color:#fff;box-shadow:0 0 0 8px rgba(232,69,44,.18)}
+.pills{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pills i{font-style:normal;font-size:12px;font-weight:600;color:#cfd8e3;background:rgba(255,255,255,.08);padding:4px 9px;border-radius:999px}
+.conn{flex:1;min-width:40px;max-width:90px;position:relative;align-self:center;height:2px;background:repeating-linear-gradient(90deg,#c3cbd6 0 6px,transparent 6px 12px)}
+.conn::after{content:"";position:absolute;top:50%;left:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(232,69,44,.2);animation:travel 2.2s linear infinite}
+.conn:nth-of-type(2)::after{animation-delay:.7s}
+.conn:nth-of-type(3)::after{animation-delay:1.4s}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:64px}
+.step{display:flex;gap:16px;align-items:flex-start}
+.step .num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;font-weight:700;display:grid;place-items:center}
+.step h3{font-size:17px;margin-bottom:4px}
+.step p{font-size:15px;color:var(--muted)}
+
+/* Stats */
+.stats{background:var(--navy);padding:56px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat b{display:block;font-size:clamp(28px,3.4vw,40px);font-weight:800;color:#fff;letter-spacing:-.02em}
+.stat b em{font-style:normal;color:var(--accent)}
+.stat span{color:#a9b6c6;font-size:15px}
+
+/* Split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.split + .split{margin-top:110px}
+.split.rev .split-txt{order:2}
+.split-txt h2{margin:16px 0 14px}
+.split-txt p{font-size:17px}
+.checks{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
+.checks li{display:flex;gap:10px;align-items:center;font-weight:500;color:var(--ink)}
+.checks li::before{content:"";flex:none;width:22px;height:22px;border-radius:50%;background:var(--teal-t) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310a99b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/13px no-repeat}
+.mock{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px;position:relative}
+.mock::before{content:"";position:absolute;inset:-18px -18px auto auto;width:120px;height:120px;border-radius:28px;background:var(--accent-t);z-index:-1}
+.split.rev .mock::before{inset:auto auto -18px -18px;background:var(--teal-t)}
+.mock-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.mock-h b{color:var(--ink);font-size:16px}
+.mock-h span{font-size:12px;color:var(--muted)}
+.field{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.field div{font-size:14px;color:var(--ink);margin-top:2px}
+.voice{display:flex;align-items:center;gap:10px}
+.playbtn{width:28px;height:28px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none}
+.mini-wave{display:flex;align-items:center;gap:2px;height:18px;margin-left:auto}
+.mini-wave i{width:3px;border-radius:2px;background:var(--teal);animation:wave .8s ease-in-out infinite alternate;height:100%;transform:scaleY(.3)}
+.tags{display:flex;gap:6px;margin-top:4px}
+.tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--soft2);color:var(--ink)}
+.tag.on{background:var(--ink);color:#fff}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:14px;color:var(--ink);padding:9px 2px;border-top:1px solid var(--line)}
+.sw{width:36px;height:20px;border-radius:999px;background:var(--teal);position:relative;flex:none}
+.sw::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.bars{display:flex;align-items:flex-end;gap:10px;height:120px;padding:10px 4px 0;border-bottom:1px solid var(--line)}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar i{width:100%;max-width:30px;border-radius:7px 7px 3px 3px;background:linear-gradient(var(--accent),#f3876f);transform-origin:bottom;animation:grow 1s ease both}
+.bar:nth-child(odd) i{background:linear-gradient(var(--teal),#6fd3c9)}
+.bar span{font-size:11px;color:var(--muted)}
+.log{margin-top:12px}
+.log-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.log-row:last-child{border:0}
+.log-row .tm{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;width:44px}
+.log-row .nr{color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.b-a{background:var(--accent-t);color:var(--accent-d)}
+.b-t{background:var(--teal-t);color:#0b7f74}
+.b-n{background:var(--soft2);color:var(--ink)}
+
+/* Pricing */
+.pricing{background:var(--soft)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px;align-items:stretch}
+.plan{background:#fff;border:1px solid var(--line);border-radius:20px;padding:32px 28px;display:flex;flex-direction:column;position:relative}
+.plan.pop{border:2px solid var(--accent);box-shadow:var(--shadow);transform:translateY(-8px)}
+.pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;white-space:nowrap}
+.plan h3{font-size:20px}
+.plan .for{font-size:14px;color:var(--muted);margin-top:4px}
+.price{margin:22px 0 4px;display:flex;align-items:baseline;gap:6px}
+.price b{font-size:44px;font-weight:800;color:var(--ink);letter-spacing:-.03em}
+.price span{color:var(--muted);font-size:15px}
+.mins{font-size:14px;font-weight:600;color:var(--teal)}
+.plan ul{list-style:none;padding:0;margin:22px 0 28px;display:grid;gap:10px;font-size:15px;flex:1}
+.plan li{display:flex;gap:10px}
+.plan li::before{content:"✓";color:var(--accent);font-weight:800}
+.plan .btn{width:100%}
+.soon{opacity:.95}
+.note{text-align:center;font-size:14px;color:var(--muted);margin-top:28px}
+
+/* FAQ */
+.faq{max-width:780px;margin:44px auto 0}
+details{border-bottom:1px solid var(--line);padding:20px 0}
+summary{cursor:pointer;list-style:none;font-weight:600;font-size:17px;color:var(--ink);display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:24px;line-height:1;color:var(--accent);transition:.2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:10px;color:var(--muted)}
+
+/* Final CTA */
+.final{padding:0 0 96px}
+.final-box{background:var(--navy);border-radius:28px;padding:64px 32px;text-align:center;position:relative;overflow:hidden}
+.final-box::before,.final-box::after{content:"";position:absolute;border-radius:50%;filter:blur(10px)}
+.final-box::before{width:340px;height:340px;background:rgba(232,69,44,.25);top:-160px;left:-80px}
+.final-box::after{width:300px;height:300px;background:rgba(16,169,155,.22);bottom:-150px;right:-60px}
+.final-box > *{position:relative;z-index:1}
+.final-box h2{color:#fff}
+.final-box p{color:#b9c5d3;font-size:18px;max-width:560px;margin:14px auto 28px}
+
+footer{border-top:1px solid var(--line);padding:30px 0;font-size:14px;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.foot-links{display:flex;gap:22px}
+.foot-links a:hover{color:var(--accent)}
+
+/* Animations */
+@keyframes blink{50%{opacity:.35}}
+@keyframes ring{0%{transform:scale(.85);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+@keyframes wave{to{transform:scaleY(1)}}
+@keyframes pop{to{opacity:1;transform:none}}
+@keyframes float{50%{transform:translateY(-8px)}}
+@keyframes travel{to{left:100%}}
+@keyframes grow{from{transform:scaleY(0)}}
+@keyframes travelY{to{top:100%}}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.shown{opacity:1;transform:none}
+
+/* Responsive */
+@media (max-width:960px){
+  .links{display:none}
+  .hero-grid,.split{grid-template-columns:1fr;gap:48px}
+  .split.rev .split-txt{order:0}
+  .visual{margin:56px auto 0}
+  .grid3,.plans{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .steps{grid-template-columns:1fr}
+  .flow{flex-direction:column;align-items:center}
+  .node,.node.core{width:100%;max-width:340px}
+  .conn{flex:none;width:2px;height:40px;min-width:0;background:repeating-linear-gradient(180deg,#c3cbd6 0 6px,transparent 6px 12px)}
+  .conn::after{left:50%;top:0;margin:-5px 0 0 -5px;animation-name:travelY}
+  .plan.pop{transform:none}
+}
+@media (max-width:640px){
+  section{padding:72px 0}
+  .hero{padding:44px 0 72px}
+  .login,.nav-r .btn{display:none}
+  .grid3,.plans{grid-template-columns:1fr}
+  .chip-night{left:-6px;top:-56px}
+  .chip-sum{right:-6px}
+  .cd-box{min-width:0;flex:1}
+  .foot{flex-direction:column;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .msg,.reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner">
+  <span data-i18n="banner">Már csak <b class="js-days">–</b> nap a nyitásig — legyen az elsők között!</span>
+  <a href="#notify" data-i18n="banner_cta">Értesítést kérek →</a>
+</div>
+
+<nav>
+  <div class="wrap nav">
+    <a href="#" class="logo" aria-label="AI Infoline">
+      <span class="logo-mark"><svg width="20" height="20" viewBox="0 0 20 20" fill="#fff"><rect x="2" y="8" width="2.6" height="4" rx="1.3"/><rect x="6.5" y="4" width="2.6" height="12" rx="1.3"/><rect x="11" y="6" width="2.6" height="8" rx="1.3"/><rect x="15.4" y="8.5" width="2.6" height="3" rx="1.3"/></svg></span>
+      AI Infoline
+    </a>
+    <div class="links">
+      <a href="#features" data-i18n="nav_features">Funkciók</a>
+      <a href="#how" data-i18n="nav_how">Működés</a>
+      <a href="#pricing" data-i18n="nav_pricing">Árak</a>
+      <a href="#faq" data-i18n="nav_faq">GYIK</a>
+    </div>
+    <div class="nav-r">
+      <div class="lang" role="group" aria-label="Nyelv / Language">
+        <button type="button" data-lang="hu">HU</button><button type="button" data-lang="en">EN</button>
+      </div>
+      <a href="/login" class="login" data-i18n="nav_login">Bejelentkezés</a>
+      <a href="#notify" class="btn btn-primary btn-sm" data-i18n="nav_cta">Értesítést kérek</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="dot"></span><span data-i18n="eyebrow">Hamarosan indul · AI telefonos asszisztens</span></span>
+      <h1 data-i18n="h1">Az AI recepciós, aki <span class="hl">minden hívást</span> felvesz.</h1>
+      <p class="lead" data-i18n="lead">Az AI Infoline mesterséges intelligenciával fogadja cége hívásait: természetes hangon válaszol a kérdésekre, időpontot egyeztet, üzenetet vesz fel, és minden hívásról összefoglalót küld — éjjel-nappal, magyarul és angolul.</p>
+      <div class="cta-row">
+        <a href="#notify" class="btn btn-primary" data-i18n="hero_cta1">Értesítést kérek a nyitásról</a>
+        <a href="#how" class="btn btn-ghost" data-i18n="hero_cta2">Hogyan működik?</a>
+      </div>
+      <div class="cd" id="countdown">
+        <div class="cd-label" data-i18n="cd_label">Nyitásig hátralévő idő</div>
+        <div class="cd-boxes">
+          <div class="cd-box"><b id="cd-d">00</b><span data-i18n="cd_d">nap</span></div>
+          <div class="cd-box"><b id="cd-h">00</b><span data-i18n="cd_h">óra</span></div>
+          <div class="cd-box"><b id="cd-m">00</b><span data-i18n="cd_m">perc</span></div>
+          <div class="cd-box"><b id="cd-s">00</b><span data-i18n="cd_s">mp</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="visual" aria-hidden="true">
+      <div class="chip chip-night">
+        <span class="ic" style="background:#eef0fb;color:#4b55c9"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span>
+        <div><b data-i18n="chip_night">Hívás 23:14-kor</b><span style="color:var(--muted);font-size:12px" data-i18n="chip_night2">fogadva, megválaszolva</span></div>
+      </div>
+
+      <div class="call">
+        <div class="call-top">
+          <div class="avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10a99b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div>
+          <div class="call-meta"><b data-i18n="call_in">Bejövő hívás</b><span>+36 30 ··· 1842</span></div>
+          <span class="live"><i></i><span data-i18n="live">Élő</span></span><span class="timer" id="timer">0:00</span>
+        </div>
+        <div class="wave" id="wave"></div>
+        <div class="chat play" id="chat">
+          <div class="msg in" style="--d:.4s" data-i18n="m1">Jó napot! Holnapra szeretnék időpontot kérni fogtisztításra.</div>
+          <div class="msg ai" style="--d:2s"><small>AI INFOLINE</small><span data-i18n="m2">Jó napot! Holnap 10:00-kor és 14:30-kor van szabad időpontunk. Melyik lenne jó?</span></div>
+          <div class="msg in" style="--d:3.8s" data-i18n="m3">A tíz órás tökéletes.</div>
+          <div class="msg ai" style="--d:5.2s"><small>AI INFOLINE</small><span data-i18n="m4">Rögzítettem: holnap 10:00, fogtisztítás. Várjuk szeretettel!</span></div>
+        </div>
+      </div>
+
+      <div class="chip chip-sum">
+        <span class="ic" style="background:var(--teal-t);color:var(--teal)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+        <div><b data-i18n="chip_sum">Időpont rögzítve</b><span data-i18n="chip_sum2">Összefoglaló elküldve e-mailben</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="inds">
+  <div class="wrap inds-row">
+    <span class="t" data-i18n="inds_t">Ideális:</span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="ind1">Rendelőknek</span></span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span data-i18n="ind2">Szervizeknek</span></span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 2v20M4 2v6a3 3 0 0 0 6 0V2M17 2c-2 2-3 5-3 8h3v12"/></svg><span data-i18n="ind3">Éttermeknek</span></span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg><span data-i18n="ind4">Szálláshelyeknek</span></span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span data-i18n="ind5">Irodáknak</span></span>
+    <span class="ind"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l1.5 4M18 2l-1.5 4M3 6h18l-2 14H5z"/></svg><span data-i18n="ind6">Webáruházaknak</span></span>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow" data-i18n="feat_eb">Funkciók</span>
+      <h2 class="h2" style="margin-top:16px" data-i18n="feat_h">Minden, ami egy jó telefonos ügyfélszolgálathoz kell</h2>
+      <p class="sub" data-i18n="feat_sub">Egyszer beállítja, és az AI Infoline onnantól a cége nevében, a cége szabályai szerint beszél.</p>
+    </div>
+    <div class="grid3">
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg></div><h3 data-i18n="f1t">Természetes beszélgetés</h3><p data-i18n="f1d">Nincs „nyomja meg az 1-est” menü. Az asszisztens élethű hangon, folyamatos beszélgetésben válaszol.</p></div>
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></div><h3 data-i18n="f2t">Saját tudásbázis</h3><p data-i18n="f2d">Nyitvatartás, árak, szolgáltatások, gyakori kérdések — a válaszok a megadott céges információkon alapulnak.</p></div>
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></div><h3 data-i18n="f3t">Időpont és üzenet</h3><p data-i18n="f3d">Felveszi a hívó adatait és kérését, időpontot egyeztet, visszahívást rögzít.</p></div>
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div><h3 data-i18n="f4t">Továbbkapcsolás emberhez</h3><p data-i18n="f4d">Ha a helyzet kollégát kíván, a hívás egy mozdulattal a megadott számra kerül.</p></div>
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg></div><h3 data-i18n="f5t">Összefoglaló minden hívásról</h3><p data-i18n="f5d">Átirat és rövid összefoglaló érkezik e-mailben, így semmi nem vész el.</p></div>
+      <div class="card reveal"><div class="f-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h3 data-i18n="f6t">Több telephely, egy fiók</h3><p data-i18n="f6d">Telephelyenként külön szám, külön hang és külön beállítások — egyetlen felületről kezelve.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="flow-sec">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow" data-i18n="how_eb">Működés</span>
+      <h2 class="h2" style="margin-top:16px" data-i18n="how_h">Így működik egy hívás</h2>
+      <p class="sub" data-i18n="how_sub">A csengéstől a megoldásig — várakoztatás és foglalt jelzés nélkül.</p>
+    </div>
+    <div class="flow reveal" aria-hidden="true">
+      <div class="node"><div class="n-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div><b data-i18n="n1t">Hívó</b><span data-i18n="n1d">Az ügyfél telefonál</span></div>
+      <div class="conn"></div>
+      <div class="node"><div class="n-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></div><b data-i18n="n2t">Az Ön száma</b><span data-i18n="n2d">Új szám vagy átirányítás</span></div>
+      <div class="conn"></div>
+      <div class="node core"><div class="n-ic"><svg width="26" height="26" viewBox="0 0 20 20" fill="#fff"><rect x="2" y="8" width="2.6" height="4" rx="1.3"/><rect x="6.5" y="4" width="2.6" height="12" rx="1.3"/><rect x="11" y="6" width="2.6" height="8" rx="1.3"/><rect x="15.4" y="8.5" width="2.6" height="3" rx="1.3"/></svg></div><b>AI Infoline</b><div class="pills"><i data-i18n="p1">Meghallgat</i><i data-i18n="p2">Megért</i><i data-i18n="p3">Válaszol</i></div></div>
+      <div class="conn"></div>
+      <div class="node"><div class="n-ic" style="background:var(--teal-t);color:var(--teal)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></div><b data-i18n="n4t">Eredmény</b><span data-i18n="n4d">Időpont, üzenet vagy továbbkapcsolás</span></div>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal"><span class="num">1</span><div><h3 data-i18n="s1t">Fiók és telefonszám</h3><p data-i18n="s1d">Regisztráljon, és válasszon számot — vagy irányítsa át a meglévőt.</p></div></div>
+      <div class="step reveal"><span class="num">2</span><div><h3 data-i18n="s2t">Tudnivalók megadása</h3><p data-i18n="s2d">Nyitvatartás, árak, gyakori kérdések és a köszöntés — pár perc alatt.</p></div></div>
+      <div class="step reveal"><span class="num">3</span><div><h3 data-i18n="s3t">Élesítés</h3><p data-i18n="s3d">Kapcsolja be az átirányítást, és az asszisztens máris fogadja a hívásokat.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="wrap stats-grid">
+    <div class="stat"><b>24<em>/</em>7</b><span data-i18n="st1">éjjel-nappal elérhető</span></div>
+    <div class="stat"><b>HU <em>·</em> EN</b><span data-i18n="st2">magyarul és angolul</span></div>
+    <div class="stat"><b data-i18n="st3v">0 Ft</b><span data-i18n="st3">hardver és telepítés</span></div>
+    <div class="stat"><b data-i18n="st4v">Percek</b><span data-i18n="st4">alatt beállítható</span></div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="split">
+      <div class="split-txt reveal">
+        <span class="eyebrow" data-i18n="sp1_eb">Testreszabás</span>
+        <h2 class="h2" data-i18n="sp1_h">Úgy beszél, ahogy a cége</h2>
+        <p data-i18n="sp1_p">Saját köszöntés, választható hang, nyitvatartás és szabályok. Ön dönti el, mikor foglaljon időpontot, mikor kapcsoljon tovább, és mit mondjon zárás után.</p>
+        <ul class="checks">
+          <li data-i18n="sp1_l1">Választható, élethű hangok</li>
+          <li data-i18n="sp1_l2">Egyedi köszöntés és hangnem</li>
+          <li data-i18n="sp1_l3">Szabályok nyitvatartás szerint</li>
+        </ul>
+      </div>
+      <div class="mock reveal" aria-hidden="true">
+        <div class="mock-h"><b data-i18n="cfg_h">Asszisztens beállításai</b><span data-i18n="cfg_co">Fehér Fogászat</span></div>
+        <div class="field"><label data-i18n="cfg_g">Köszöntés</label><div data-i18n="cfg_gv">„Jó napot, a Fehér Fogászat asszisztense vagyok. Miben segíthetek?”</div></div>
+        <div class="field"><label data-i18n="cfg_v">Hang</label><div class="voice"><span class="playbtn"><svg width="10" height="10" viewBox="0 0 10 10" fill="#fff"><path d="M2 1l7 4-7 4z"/></svg></span><span data-i18n="cfg_vv">Anna — természetes női hang</span><span class="mini-wave"><i style="animation-delay:-.1s"></i><i style="animation-delay:-.5s"></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.7s"></i><i style="animation-delay:-.2s"></i><i style="animation-delay:-.6s"></i></span></div></div>
+        <div class="field"><label data-i18n="cfg_l">Nyelv · Nyitvatartás</label><div class="tags"><span class="tag on">Magyar</span><span class="tag on">English</span><span class="tag" data-i18n="cfg_hours">H–P 8:00–18:00</span></div></div>
+        <div class="toggle-row"><span data-i18n="cfg_t1">Időpontfoglalás</span><span class="sw"></span></div>
+        <div class="toggle-row"><span data-i18n="cfg_t2">Továbbkapcsolás emberhez</span><span class="sw"></span></div>
+        <div class="toggle-row"><span data-i18n="cfg_t3">Összefoglaló e-mailben</span><span class="sw"></span></div>
+      </div>
+    </div>
+
+    <div class="split rev">
+      <div class="split-txt reveal">
+        <span class="eyebrow" data-i18n="sp2_eb">Áttekintés</span>
+        <h2 class="h2" data-i18n="sp2_h">Minden hívás egy helyen</h2>
+        <p data-i18n="sp2_p">A webes felületen visszanézheti a hívásokat, az átiratokat és az összefoglalókat — és láthatja, mikor keresik a legtöbben.</p>
+        <ul class="checks">
+          <li data-i18n="sp2_l1">Hívásnapló átirattal</li>
+          <li data-i18n="sp2_l2">Napi és heti statisztika</li>
+          <li data-i18n="sp2_l3">Azonnali értesítés e-mailben</li>
+        </ul>
+      </div>
+      <div class="mock reveal" aria-hidden="true">
+        <div class="mock-h"><b data-i18n="log_h">Hívásnapló</b><span data-i18n="log_w">Ezen a héten · 86 hívás</span></div>
+        <div class="bars" id="bars"></div>
+        <div class="log">
+          <div class="log-row"><span class="tm">09:12</span><span class="nr">+36 20 ··· 3381</span><span class="badge b-a" data-i18n="log1">Időpontfoglalás</span></div>
+          <div class="log-row"><span class="tm">11:47</span><span class="nr">+36 1 ··· 7720</span><span class="badge b-n" data-i18n="log2">Árajánlat kérés</span></div>
+          <div class="log-row"><span class="tm">22:05</span><span class="nr">+36 30 ··· 1842</span><span class="badge b-t" data-i18n="log3">Visszahívást kér</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="pricing">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow" data-i18n="pr_eb">Árak</span>
+      <h2 class="h2" style="margin-top:16px" data-i18n="pr_h">Egyszerű, átlátható csomagok</h2>
+      <p class="sub" data-i18n="pr_sub">Nyitási kedvezmény az elsőként jelentkezőknek. Hűségidő nélkül, bármikor lemondható.</p>
+    </div>
+    <div class="plans">
+      <div class="plan reveal">
+        <h3 data-i18n="pl1">Alap</h3><p class="for" data-i18n="pl1f">Kisvállalkozásoknak, kezdéshez</p>
+        <div class="price"><b>€19</b><span data-i18n="pm">/ hó</span></div><div class="mins" data-i18n="pl1m">100 beszélgetési perc / hó</div>
+        <ul><li data-i18n="pl1a">1 telefonszám</li><li data-i18n="pl1b">Tudásbázis és egyedi köszöntés</li><li data-i18n="pl1c">Összefoglaló e-mailben</li><li data-i18n="pl1d">Magyar és angol nyelv</li></ul>
+        <a href="#notify" class="btn btn-ghost soon" data-i18n="pl_btn">Nyitáskor elérhető</a>
+      </div>
+      <div class="plan pop reveal">
+        <span class="pop-badge" data-i18n="pl_pop">Legnépszerűbb</span>
+        <h3 data-i18n="pl2">Üzleti</h3><p class="for" data-i18n="pl2f">Rendszeres hívásforgalomhoz</p>
+        <div class="price"><b>€49</b><span data-i18n="pm">/ hó</span></div><div class="mins" data-i18n="pl2m">400 beszélgetési perc / hó</div>
+        <ul><li data-i18n="pl2a">Minden az Alap csomagból</li><li data-i18n="pl2b">Időpont-egyeztetés</li><li data-i18n="pl2c">Továbbkapcsolás emberhez</li><li data-i18n="pl2d">Hívásnapló és statisztika</li></ul>
+        <a href="#notify" class="btn btn-primary" data-i18n="pl_btn2">Értesítést kérek</a>
+      </div>
+      <div class="plan reveal">
+        <h3 data-i18n="pl3">Prémium</h3><p class="for" data-i18n="pl3f">Több telephelyhez, nagyobb forgalomhoz</p>
+        <div class="price"><b>€129</b><span data-i18n="pm">/ hó</span></div><div class="mins" data-i18n="pl3m">1500 beszélgetési perc / hó</div>
+        <ul><li data-i18n="pl3a">Minden az Üzleti csomagból</li><li data-i18n="pl3b">Akár 3 telefonszám</li><li data-i18n="pl3c">Több telephely egy fiókban</li><li data-i18n="pl3d">Kiemelt támogatás</li></ul>
+        <a href="#notify" class="btn btn-ghost soon" data-i18n="pl_btn">Nyitáskor elérhető</a>
+      </div>
+    </div>
+    <p class="note" data-i18n="pr_note">Az árak tájékoztató jellegűek, az ÁFA-t nem tartalmazzák. A csomagok a nyitással válnak elérhetővé.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow" data-i18n="faq_eb">GYIK</span>
+      <h2 class="h2" style="margin-top:16px" data-i18n="faq_h">Gyakori kérdések</h2>
+    </div>
+    <div class="faq reveal">
+      <details><summary data-i18n="q1">Mikor indul a szolgáltatás?</summary><p data-i18n="a1">Hamarosan — a pontos időpontot a fenti visszaszámláló mutatja. Írjon nekünk, és szólunk, amint lehet csatlakozni.</p></details>
+      <details><summary data-i18n="q2">Megtarthatom a meglévő telefonszámomat?</summary><p data-i18n="a2">Igen. Elég átirányítani a hívásokat az AI Infoline számára — vagy igényelhet új számot is.</p></details>
+      <details><summary data-i18n="q3">Tudják a hívók, hogy AI-val beszélnek?</summary><p data-i18n="a3">Igen. Az asszisztens természetes hangon beszél, de átlátható: nem adja ki magát embernek. Ha a hívó kollégával szeretne beszélni, továbbkapcsolja.</p></details>
+      <details><summary data-i18n="q4">Mi történik, ha az AI nem tudja a választ?</summary><p data-i18n="a4">Felveszi a kérdést és a hívó elérhetőségét, és összefoglalót küld Önnek — vagy, ha így állítja be, továbbkapcsolja a hívást.</p></details>
+      <details><summary data-i18n="q5">Mi történik, ha elfogynak a percek?</summary><p data-i18n="a5">Előre szólunk, mielőtt elérné a keretet, és bármikor válthat nagyobb csomagra.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="final" id="notify">
+  <div class="wrap">
+    <div class="final-box reveal">
+      <h2 class="h2" data-i18n="fin_h">Legyen az elsők között</h2>
+      <p data-i18n="fin_p">Írjon egy rövid e-mailt, és a nyitáskor elsőként értesítjük — nyitási kedvezménnyel.</p>
+      <a href="#" class="btn btn-primary js-mail" data-i18n="fin_btn">Értesítést kérek</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 AI Infoline · infoline.dev</span>
+    <div class="foot-links">
+      <a href="#features" data-i18n="nav_features">Funkciók</a>
+      <a href="#pricing" data-i18n="nav_pricing">Árak</a>
+      <a href="#" class="js-mail" data-i18n="ft_contact">Kapcsolat</a>
+      <a href="/login" data-i18n="nav_login">Bejelentkezés</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== Beállítások ===== */
+const LAUNCH_AT = new Date('2026-10-20T10:00:00+02:00'); // nyitás időpontja
+const CONTACT_EMAIL = 'hello@infoline.dev';             // értesítés / kapcsolat
+
+const EN = {
+  banner:'Only <b class="js-days">–</b> days until launch — be among the first!',
+  banner_cta:'Get notified →',
+  nav_features:'Features', nav_how:'How it works', nav_pricing:'Pricing', nav_faq:'FAQ', nav_login:'Sign in', nav_cta:'Get notified',
+  eyebrow:'Launching soon · AI phone assistant',
+  h1:'The AI receptionist that answers <span class="hl">every call</span>.',
+  lead:'AI Infoline answers your business calls with AI: it responds to questions in a natural voice, books appointments, takes messages and sends you a summary of every call — day and night, in English and Hungarian.',
+  hero_cta1:'Notify me at launch', hero_cta2:'How does it work?',
+  cd_label:'Time until launch', cd_d:'days', cd_h:'hours', cd_m:'min', cd_s:'sec',
+  chip_night:'Call at 11:14 pm', chip_night2:'answered and handled',
+  call_in:'Incoming call', live:'Live',
+  m1:'Hi! I\'d like to book a teeth cleaning for tomorrow.',
+  m2:'Hello! We have openings tomorrow at 10:00 and 14:30. Which works for you?',
+  m3:'Ten o\'clock is perfect.',
+  m4:'Done: tomorrow at 10:00, teeth cleaning. See you then!',
+  chip_sum:'Appointment booked', chip_sum2:'Summary sent by email',
+  inds_t:'Ideal for:', ind1:'Clinics', ind2:'Repair shops', ind3:'Restaurants', ind4:'Hotels & B&Bs', ind5:'Offices', ind6:'Online stores',
+  feat_eb:'Features', feat_h:'Everything a great phone front desk needs',
+  feat_sub:'Set it up once — from then on AI Infoline speaks on your behalf, by your rules.',
+  f1t:'Natural conversation', f1d:'No "press 1" menus. The assistant replies in a lifelike voice, in a flowing conversation.',
+  f2t:'Your own knowledge base', f2d:'Opening hours, prices, services, FAQs — answers are based on the business information you provide.',
+  f3t:'Appointments & messages', f3d:'Captures caller details and requests, books appointments and logs callbacks.',
+  f4t:'Hand-off to a human', f4d:'When a situation needs a colleague, the call is transferred to the number you choose.',
+  f5t:'A summary of every call', f5d:'A transcript and short summary arrive by email, so nothing slips through.',
+  f6t:'Many locations, one account', f6d:'A separate number, voice and settings per location — all managed from one place.',
+  how_eb:'How it works', how_h:'Anatomy of a call', how_sub:'From the first ring to a resolution — no hold music, no busy tone.',
+  n1t:'Caller', n1d:'Your customer calls', n2t:'Your number', n2d:'New number or call forwarding',
+  p1:'Listens', p2:'Understands', p3:'Responds', n4t:'Outcome', n4d:'Appointment, message or transfer',
+  s1t:'Account & number', s1d:'Sign up and pick a number — or forward your existing one.',
+  s2t:'Add your details', s2d:'Opening hours, prices, FAQs and a greeting — in a few minutes.',
+  s3t:'Go live', s3d:'Turn on forwarding and the assistant starts taking calls right away.',
+  st1:'always available', st2:'English and Hungarian', st3v:'€0', st3:'hardware or installation', st4v:'Minutes', st4:'to set up',
+  sp1_eb:'Customisation', sp1_h:'Sounds like your business',
+  sp1_p:'Your own greeting, a choice of voices, opening hours and rules. You decide when it books, when it transfers, and what it says after hours.',
+  sp1_l1:'Lifelike, selectable voices', sp1_l2:'Custom greeting and tone', sp1_l3:'Rules based on opening hours',
+  cfg_h:'Assistant settings', cfg_co:'Bright Dental', cfg_g:'Greeting', cfg_gv:'"Hello, this is Bright Dental\'s assistant. How can I help?"',
+  cfg_v:'Voice', cfg_vv:'Anna — natural female voice', cfg_l:'Languages · Hours', cfg_hours:'Mon–Fri 8:00–18:00',
+  cfg_t1:'Appointment booking', cfg_t2:'Transfer to a human', cfg_t3:'Email summary',
+  sp2_eb:'Overview', sp2_h:'Every call in one place',
+  sp2_p:'Review calls, transcripts and summaries in the web dashboard — and see when people call you most.',
+  sp2_l1:'Call log with transcripts', sp2_l2:'Daily and weekly stats', sp2_l3:'Instant email notifications',
+  log_h:'Call log', log_w:'This week · 86 calls', log1:'Booking', log2:'Quote request', log3:'Wants a callback',
+  pr_eb:'Pricing', pr_h:'Simple, transparent plans', pr_sub:'Launch discount for early sign-ups. No lock-in, cancel any time.',
+  pm:'/ month', pl_pop:'Most popular', pl_btn:'Available at launch', pl_btn2:'Get notified',
+  pl1:'Starter', pl1f:'For small businesses getting started', pl1m:'100 talk minutes / month',
+  pl1a:'1 phone number', pl1b:'Knowledge base & custom greeting', pl1c:'Email summaries', pl1d:'English and Hungarian',
+  pl2:'Business', pl2f:'For steady call volume', pl2m:'400 talk minutes / month',
+  pl2a:'Everything in Starter', pl2b:'Appointment booking', pl2c:'Transfer to a human', pl2d:'Call log & statistics',
+  pl3:'Premium', pl3f:'For multiple locations and higher volume', pl3m:'1,500 talk minutes / month',
+  pl3a:'Everything in Business', pl3b:'Up to 3 phone numbers', pl3c:'Multiple locations, one account', pl3d:'Priority support',
+  pr_note:'Prices are indicative and exclude VAT. Plans become available at launch.',
+  faq_eb:'FAQ', faq_h:'Frequently asked questions',
+  q1:'When does the service launch?', a1:'Very soon — the countdown above shows the exact time. Drop us a line and we\'ll tell you as soon as you can join.',
+  q2:'Can I keep my existing phone number?', a2:'Yes. Just forward your calls to your AI Infoline number — or get a new number.',
+  q3:'Do callers know they\'re talking to an AI?', a3:'Yes. The assistant speaks naturally but is transparent — it never pretends to be human. If the caller wants a person, it transfers the call.',
+  q4:'What if the AI doesn\'t know the answer?', a4:'It takes down the question and the caller\'s contact details and sends you a summary — or transfers the call, if you set it up that way.',
+  q5:'What happens if I run out of minutes?', a5:'We\'ll let you know before you reach your limit, and you can upgrade at any time.',
+  fin_h:'Be among the first', fin_p:'Send us a quick email and we\'ll notify you first at launch — with a launch discount.', fin_btn:'Get notified',
+  ft_contact:'Contact'
+};
+
+/* ===== i18n ===== */
+const HU = {};
+document.querySelectorAll('[data-i18n]').forEach(el => { HU[el.dataset.i18n] = el.innerHTML; });
+let lang = 'hu';
+function setLang(l){
+  lang = l;
+  const dict = l === 'en' ? EN : HU;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = dict[el.dataset.i18n]; if (v !== undefined) el.innerHTML = v;
+  });
+  document.documentElement.lang = l;
+  document.querySelectorAll('.lang button').forEach(b => b.classList.toggle('on', b.dataset.lang === l));
+  try { localStorage.setItem('lang', l); } catch(e) {}
+  setMail(); tick(); renderBars();
+}
+document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+function setMail(){
+  const subj = lang === 'en' ? 'AI Infoline – notify me at launch' : 'AI Infoline – értesítés a nyitásról';
+  const body = lang === 'en' ? 'Hi! Please let me know when AI Infoline launches.\n\nCompany:\nWebsite:' : 'Jó napot! Kérem, értesítsenek az AI Infoline indulásáról.\n\nCégnév:\nWeboldal:';
+  document.querySelectorAll('.js-mail').forEach(a => {
+    a.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+  });
+}
+
+/* ===== Visszaszámláló ===== */
+const pad = n => String(n).padStart(2, '0');
+function tick(){
+  const diff = LAUNCH_AT - Date.now();
+  if (diff <= 0){
+    document.getElementById('countdown').style.display = 'none';
+    document.getElementById('banner').style.display = 'none';
+    return;
+  }
+  const d = Math.floor(diff / 864e5), h = Math.floor(diff / 36e5) % 24, m = Math.floor(diff / 6e4) % 60, s = Math.floor(diff / 1e3) % 60;
+  document.getElementById('cd-d').textContent = pad(d);
+  document.getElementById('cd-h').textContent = pad(h);
+  document.getElementById('cd-m').textContent = pad(m);
+  document.getElementById('cd-s').textContent = pad(s);
+  document.querySelectorAll('.js-days').forEach(el => el.textContent = Math.max(1, Math.ceil(diff / 864e5)));
+}
+setInterval(tick, 1000);
+
+/* ===== Hero: hullámforma, hívásidő, beszélgetés loop ===== */
+const wave = document.getElementById('wave');
+for (let i = 0; i < 34; i++){
+  const s = document.createElement('span');
+  s.style.animationDuration = (0.45 + Math.random() * 0.7).toFixed(2) + 's';
+  s.style.animationDelay = (-Math.random()).toFixed(2) + 's';
+  wave.appendChild(s);
+}
+let secs = 0;
+const timer = document.getElementById('timer');
+setInterval(() => { secs++; timer.textContent = Math.floor(secs / 60) + ':' + pad(secs % 60); }, 1000);
+const chat = document.getElementById('chat');
+setInterval(() => { chat.classList.remove('play'); void chat.offsetWidth; chat.classList.add('play'); secs = 0; }, 11000);
+
+/* ===== Statisztika oszlopok ===== */
+const DAYS = { hu: ['H','K','Sze','Cs','P','Szo','V'], en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] }, vals = [62, 78, 55, 90, 84, 38, 24];
+const bars = document.getElementById('bars');
+function renderBars(){
+  bars.innerHTML = vals.map((v, i) => `<div class="bar"><i style="height:${v}%;animation-delay:${i * .08}s"></i><span>${DAYS[lang][i]}</span></div>`).join('');
+}
+
+/* ===== Görgetéskori megjelenés ===== */
+const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting){ e.target.classList.add('shown'); io.unobserve(e.target); }
+}), { threshold: .12 }) : null;
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('shown'));
+
+/* ===== Indulás ===== */
+let start = 'en';
+try { start = localStorage.getItem('lang') || 'en'; } catch(e) {}
+setLang(start);
+</script>
+</body>
+</html>
