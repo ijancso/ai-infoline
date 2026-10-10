@@ -184,7 +184,7 @@ export default function Tenants() {
               {tenants.map((t) => (
                 <tr key={t.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    <Link to={`/tenants/${t.id}`} className="hover:underline">{t.name}</Link>
+                    <Link to={`/login/tenants/${t.id}`} className="hover:underline">{t.name}</Link>
                   </td>
                   <td className="px-4 py-3 text-gray-500 font-mono">{t.slug}</td>
                   <td className="px-4 py-3 text-gray-400">

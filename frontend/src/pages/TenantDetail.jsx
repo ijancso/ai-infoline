@@ -202,7 +202,7 @@ function Calls({ tenantId }) {
               </td>
               <td className="px-4 py-3 text-right">
                 <Link
-                  to={`/tenants/${tenantId}/calls/${c.id}`}
+                  to={`/login/tenants/${tenantId}/calls/${c.id}`}
                   className="text-xs text-gray-400 hover:text-gray-700"
                 >
                   Details
@@ -232,7 +232,7 @@ export default function TenantDetail() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/" className="text-xs text-gray-400 hover:text-gray-700">← Tenants</Link>
+        <Link to="/login" className="text-xs text-gray-400 hover:text-gray-700">← Tenants</Link>
         <h1 className="text-xl font-semibold text-gray-900 mt-1">{tenant.name}</h1>
         <p className="text-sm text-gray-400 font-mono">{tenant.slug}</p>
       </div>
